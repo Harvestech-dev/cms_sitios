@@ -1,0 +1,36 @@
+{
+  "sidebarItems": [
+    {
+      "label": "Inicio",
+      "href": "/home",
+      "icon": "FaHome"
+    },
+    {
+      "label": "Páginas",
+      "icon": "FaFile"
+    },
+    {
+      "label": "Productos",
+      "href": "/products",
+      "icon": "FaBox",
+      "items": [
+        { "label": "Catálogo", "href": "/products/catalog" },
+        { "label": "Categorías", "href": "/products/categories" }
+      ]
+    },
+    {
+      "label": "Noticias",
+      "href": "/news",
+      "icon": "FaNewspaper",
+      "items": [
+        { "label": "Noticias", "href": "/noticias" },
+        { "label": "Novedades", "href": "/novedades" }
+      ]
+    },
+    {
+      "label": "Media",
+      "href": "/media",
+      "icon": "FaImages"
+    }
+  ]
+}

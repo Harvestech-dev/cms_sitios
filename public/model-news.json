@@ -1,0 +1,20 @@
+{
+    "id": "noticia-001",
+    "title": "Avances en el cultivo de tomates en invernadero",
+    "excerpt": "Un resumen breve sobre los últimos avances en cultivos bajo cubierta.",
+    "cover_image": {
+      "src": "/uploads/imagenes/tomates_invernadero.jpg",
+      "alt": "Cultivo de tomates en invernadero"
+    },
+    "content_markdown": "## Introducción\nEl cultivo de tomates en invernadero ha mostrado mejoras significativas...\n\n### Nuevas técnicas\n- Fertirrigación\n- Control de plagas biológico\n\n> Estas prácticas han reducido costos y mejorado la calidad del producto.",
+    "author": "Ing. Marcela Eleuteri",
+    "tags": ["horticultura", "tomates", "cultivo"],
+    "categories": ["Investigación", "Invernaderos"],
+    "user_id": "uuid-del-usuario-creador",
+    "is_featured": true,
+    "created_at": "2025-04-28T14:23:00Z",
+    "updated_at": "2025-04-28T14:23:00Z",
+    "published_at": "2025-04-28T15:00:00Z",
+    "status": "published"
+  }
+  

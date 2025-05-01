@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { uploadFile, createMediaRecord } from '@/lib/supabase-storage';
 import IconRenderer from './IconRenderer';
+import { supabase } from '@/lib/supabase';
 
 interface MediaFile {
   id: string;
@@ -13,6 +14,7 @@ interface MediaFile {
   alt: string;
   name: string;
   storage_path: string;
+  size: number;
 }
 
 interface FileUploadProps {
@@ -36,16 +38,44 @@ export default function FileUpload({ onUploadComplete, onError }: FileUploadProp
         }, 100);
 
         try {
-          // Subir archivo
-          const uploadResponse = await uploadFile(file);
-          
+          // Generar un nombre único para el archivo
+          const fileName = `${Date.now()}-${file.name}`;
+          const storagePath = `uploads/${fileName}`;
+
+          // Subir archivo al storage
+          const { error: storageError } = await supabase
+            .storage
+            .from('media')
+            .upload(storagePath, file);
+
+          if (storageError) throw storageError;
+
+          // Obtener la URL pública
+          const { data: { publicUrl } } = supabase
+            .storage
+            .from('media')
+            .getPublicUrl(storagePath);
+
           // Crear registro en la base de datos
-          const mediaFile = await createMediaRecord(file, uploadResponse);
+          const { data: mediaFile, error: dbError } = await supabase
+            .from('media_files')
+            .insert({
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              storage_path: storagePath,
+              url: publicUrl,
+              alt: file.name
+            })
+            .select()
+            .single();
+
+          if (dbError) throw dbError;
 
           clearInterval(progressInterval);
           setProgress(100);
 
-          onUploadComplete?.(mediaFile);
+          onUploadComplete && onUploadComplete(mediaFile);
         } catch (error) {
           clearInterval(progressInterval);
           throw error;
@@ -53,7 +83,7 @@ export default function FileUpload({ onUploadComplete, onError }: FileUploadProp
       }
     } catch (error) {
       console.error('Error detallado:', error);
-      onError?.(error instanceof Error ? error : new Error('Error desconocido'));
+      onError && onError(error instanceof Error ? error : new Error('Error desconocido'));
     } finally {
       setUploading(false);
       setProgress(0);

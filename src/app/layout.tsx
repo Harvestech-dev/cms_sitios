@@ -7,6 +7,7 @@ import navigationData from "@/data/navigation.json";
 import { ComponentsProvider } from '@/contexts/ComponentsContext';
 import { MediaProvider } from '@/contexts/MediaContext';
 import { ToastProvider } from '@/contexts/ToastContext';
+import { IconSelectorProvider } from '@/contexts/IconSelectorContext';
 
 export const metadata: Metadata = {
   title: "CMS Web",
@@ -24,18 +25,20 @@ export default function RootLayout({
         <ToastProvider>
           <MediaProvider>
             <ComponentsProvider>
-              <Navbar />
-              <Sidebar items={navigationData.sidebarItems} />
-              <div className="flex flex-col min-h-screen pt-16">
-                <main className="flex-1">
-                  {children}
-                </main>
+              <IconSelectorProvider>
+                <Navbar />
+                <Sidebar items={navigationData.sidebarItems} />
+                <div className="flex flex-col min-h-screen mt-36 pt-20 px-64">
+                  <main className="flex-1">
+                    {children}
+                  </main>
+                </div>
                 <Footer
                   showPath={true}
                   tip="Presiona Ctrl + S para guardar los cambios"
                   info="Última actualización: hace 5 minutos"
                 />
-              </div>
+              </IconSelectorProvider>
             </ComponentsProvider>
           </MediaProvider>
         </ToastProvider>

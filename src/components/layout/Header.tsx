@@ -27,9 +27,10 @@ interface HeaderProps {
   breadcrumbs: Breadcrumb[];
   actions: Action[];
   status?: Status;
+  isExpanded: boolean;
 }
 
-export default function Header({ title, breadcrumbs, actions, status }: HeaderProps) {
+export default function Header({ title, breadcrumbs, actions, status, isExpanded }: HeaderProps) {
   const getActionStyle = (variant: Action['variant']) => {
     const baseStyle = "px-4 py-2 rounded-md text-sm font-medium transition-colors";
     switch (variant) {
@@ -55,8 +56,11 @@ export default function Header({ title, breadcrumbs, actions, status }: HeaderPr
   };
 
   return (
-    <header className="sticky top-16 z-40 bg-gray-800 border-b border-gray-700 px-64">
-      <div className="container mx-auto px-6 py-4">
+    <header className={`
+      fixed top-16 right-0 left-0 pl-64 bg-gray-800 border-b border-gray-700
+      transition-all duration-300 z-30 
+    `}>
+      <div className="px-6 py-4">
         {/* Breadcrumbs */}
         <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
           {breadcrumbs.map((item, index) => (

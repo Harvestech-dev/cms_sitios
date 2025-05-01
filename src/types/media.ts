@@ -2,7 +2,7 @@ export interface MediaFile {
   id: string;
   name: string;
   type: string;
-  size?: number;
+  size: number;
   url: string;
   alt?: string;
   storage_path?: string;

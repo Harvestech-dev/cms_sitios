@@ -20,7 +20,7 @@ export default function PageRender({ type, page }: PageRenderProps) {
   const [isPublishing, setIsPublishing] = useState(false);
   const componentData = getComponentByType(type);
 
-  const handleSave = async (content: Record<string, any>) => {
+  const handleSave = async (content: ComponentContent) => {
     try {
       // Actualizamos UI inmediatamente
       updateComponent(type, { content, status: 'draft' });
@@ -96,6 +96,7 @@ export default function PageRender({ type, page }: PageRenderProps) {
           label: componentData?.status === 'published' ? 'Publicado' : 'Borrador',
           type: componentData?.status || 'draft'
         }}
+        isExpanded={true}
       />
 
       <div className="p-6">

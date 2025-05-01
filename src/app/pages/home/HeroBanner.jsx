@@ -1,6 +1,10 @@
 import React from 'react'
-
+import * as FaIcons from 'react-icons/fa';
+import * as AiIcons from 'react-icons/ai';
+import * as BiIcons from 'react-icons/bi';
+import IconRender from '@/components/common/IconRender';
 const HeroBanner = ({ content }) => {
+
   if (!content) return null
 
   const {
@@ -50,9 +54,10 @@ const HeroBanner = ({ content }) => {
             {item_lista?.length > 0 && (
               <ul className="space-y-2 text-white/90 list-disc list-inside text-base md:text-lg">
                 {item_lista.map((item, index) => (
-                  <li key={index} className="leading-tight md:leading-normal">
+                  <p key={index} className="leading-tight md:leading-normal flex items-center gap-2">
+                    {item.icon && <IconRender icon={item.icon} />}
                     {item.text}
-                  </li>
+                  </p>
                 ))}
               </ul>
             )}

@@ -1,11 +1,10 @@
-export const formatFileSize = (bytes?: number): string => {
-  if (!bytes) return '0 B';
+export const formatFileSize = (bytes: number): string => {
+  if (!bytes || bytes === 0) return '0 B';
   
-  const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
   
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+  return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
 };
 
 export const formatDate = (date: string): string => {

@@ -15,7 +15,7 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 h-16 border-b border-gray-700 bg-gray-800 z-50">
-      <div className="container mx-auto px-4 h-full flex items-center justify-between">
+      <div className="container mx-4 h-full flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="font-bold text-xl flex items-center gap-2 text-white">
           <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">

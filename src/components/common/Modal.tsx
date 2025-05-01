@@ -15,7 +15,10 @@ const sizeClasses = {
   sm: 'max-w-md',
   md: 'max-w-lg',
   lg: 'max-w-2xl',
-  xl: 'max-w-4xl'
+  xl: 'max-w-4xl',
+  '2xl': 'max-w-6xl',
+  '3xl': 'max-w-7xl',
+  'full': 'max-w-full'
 };
 
 export default function Modal({ 
@@ -42,14 +45,14 @@ export default function Modal({
     <>
       {/* Overlay */}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        className="fixed inset-0 bg-black/60 bg-opacity-50 z-40"
         onClick={onClose}
       />
 
       {/* Modal */}
       <div 
         className={`
-          fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+          fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ml-20
           ${sizeClasses[size]} w-full bg-gray-800 rounded-lg shadow-xl z-50
         `}
       >

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import IconRenderer from './IconRenderer';
+  import IconRender from '@/components/common/IconRender';
 
 interface DrawerProps {
   isOpen: boolean;
@@ -64,7 +64,7 @@ export default function Drawer({
             onClick={onClose}
             className="p-1 hover:bg-gray-700 rounded-full transition-colors"
           >
-            <IconRenderer icon="FaTimes" className="w-5 h-5 text-gray-400" />
+            <IconRender icon="FaTimes" className="w-5 h-5 text-gray-400" />
           </button>
         </div>
 

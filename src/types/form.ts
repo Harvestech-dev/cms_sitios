@@ -1,27 +1,20 @@
 export type FieldType = 
-  | 'txt'    // Texto simple
-  | 'txtp'   // Texto largo/párrafos
-  | 'img'    // Imagen única
-  | 'icon'   // Selector de ícono
-  | 'link'   // Link con label y url
-  | 'btn'    // Botón
-  | 'item'   // Lista de items
-  | 'paragraph' // Párrafos
-  | 'gallery'; // Galería de imágenes
-
-export interface FormField {
-  type: FieldType;
-  key: string;
-  label: string;
-  value: any;
-  required?: boolean;
-  options?: any[];
-}
+  | 'txt' 
+  | 'txtp' 
+  | 'img' 
+  | 'icon' 
+  | 'link' 
+  | 'btn' 
+  | 'item' 
+  | 'gallery'
+  | 'social'
+  | 'contact'
+  | 'template_email';
 
 export interface ImageField {
   id: string;
-  url: string;
   alt: string;
+  url?: string;
 }
 
 export interface LinkField {
@@ -29,8 +22,45 @@ export interface LinkField {
   url: string;
   icon?: string;
 }
+export interface ContactField {
+  label: string;
+  url: string;
+  icon?: string;
+}
 
 export interface ItemField {
-  icon?: string;
+  icon: string;
   text: string;
-} 
+}
+
+export interface EmailTemplate {
+  text_body: string;
+  text_subject: string;
+}
+
+export interface FormField {
+  key: string;
+  type: FieldType;
+  label: string;
+  value: string | ImageField | LinkField | ItemField | EmailTemplate | Array<any>;
+  required: boolean;
+  isArray?: boolean;
+  group?: string;
+  metadata?: {
+    title?: string;
+    description?: string;
+    group?: string;
+  };
+}
+
+// Tipos para los valores de los campos
+export type FieldValue = 
+  | string 
+  | string[] 
+  | ImageField 
+  | ImageField[] 
+  | LinkField 
+  | LinkField[] 
+  | ItemField[]
+  | ContactField[]
+  | EmailTemplate;

@@ -8,6 +8,8 @@ import { ComponentsProvider } from '@/contexts/ComponentsContext';
 import { MediaProvider } from '@/contexts/MediaContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { IconSelectorProvider } from '@/contexts/IconSelectorContext';
+import { ProductProvider } from '@/contexts/ProductContext';
+import { NewsProvider } from '@/contexts/NewsContext';
 
 export const metadata: Metadata = {
   title: "CMS Web",
@@ -24,22 +26,26 @@ export default function RootLayout({
       <body className="bg-gray-900">
         <ToastProvider>
           <MediaProvider>
-            <ComponentsProvider>
-              <IconSelectorProvider>
-                <Navbar />
-                <Sidebar items={navigationData.sidebarItems} />
-                <div className="flex flex-col min-h-screen mt-36 pt-20 px-64">
-                  <main className="flex-1">
-                    {children}
-                  </main>
-                </div>
-                <Footer
-                  showPath={true}
-                  tip="Presiona Ctrl + S para guardar los cambios"
-                  info="Última actualización: hace 5 minutos"
-                />
-              </IconSelectorProvider>
-            </ComponentsProvider>
+            <NewsProvider>
+              <ProductProvider>
+                <ComponentsProvider>
+                  <IconSelectorProvider>
+                    <Navbar />
+                    <Sidebar items={navigationData.sidebarItems} />
+                    <div className="flex flex-col min-h-screen mt-36 pt-20 px-64">
+                      <main className="flex-1">
+                        {children}
+                      </main>
+                    </div>
+                    <Footer
+                      showPath={true}
+                      tip="Presiona Ctrl + S para guardar los cambios"
+                      info="Última actualización: hace 5 minutos"
+                    />
+                  </IconSelectorProvider>
+                </ComponentsProvider>
+              </ProductProvider>
+            </NewsProvider>
           </MediaProvider>
         </ToastProvider>
       </body>

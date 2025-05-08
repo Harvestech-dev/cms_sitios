@@ -1,33 +1,67 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Modal from '@/components/common/Modal';
 import IconRenderer from '@/components/common/IconRenderer';
 import { MediaFile } from '@/types/media';
 import { formatFileSize, formatDate } from '@/lib/utils';
 import { useToast } from '@/contexts/ToastContext';
+import { Chip } from '@/components/common/Chip';
+
+const MEDIA_CATEGORIES = [
+  'noticias',
+  'productos',
+  'banners',
+  'logos',
+  'iconos',
+  'componentes'
+] as const;
 
 interface FileDetailsModalProps {
   file: MediaFile;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (file: MediaFile) => Promise<void>;
+  onUpdate: (file: MediaFile) => Promise<void>;
 }
 
-export default function FileDetailsModal({ file, isOpen, onClose, onSave }: FileDetailsModalProps) {
+export default function FileDetailsModal({ file, isOpen, onClose, onUpdate }: FileDetailsModalProps) {
   const { showToast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [editedFile, setEditedFile] = useState(file);
+  const [name, setName] = useState(file.name);
+  const [alt, setAlt] = useState(file.alt || '');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    Array.isArray(file.categories) ? file.categories : 
+    typeof file.categories === 'object' && file.categories !== null
+      ? Object.values(file.categories)
+      : []
+  );
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    setName(file.name);
+    setAlt(file.alt || '');
+    setSelectedCategories(
+      Array.isArray(file.categories) ? file.categories : 
+      typeof file.categories === 'object' && file.categories !== null
+        ? Object.values(file.categories)
+        : []
+    );
+  }, [file]);
 
   const handleSave = async () => {
     try {
       setIsSaving(true);
-      await onSave(editedFile);
+      const updatedFile: MediaFile = {
+        ...file,
+        name,
+        alt,
+        categories: selectedCategories
+      };
+      await onUpdate(updatedFile);
       setIsEditing(false);
       showToast('Cambios guardados correctamente', 'success');
     } catch (error) {
-      console.error('Error al guardar:', error);
+      console.error('Error al actualizar archivo:', error);
       showToast('Error al guardar los cambios', 'error');
     } finally {
       setIsSaving(false);
@@ -58,8 +92,14 @@ export default function FileDetailsModal({ file, isOpen, onClose, onSave }: File
         {isEditing && isEditable ? (
           <input
             type="text"
-            value={editedFile[key] as string}
-            onChange={(e) => setEditedFile({ ...editedFile, [key]: e.target.value })}
+            value={value}
+            onChange={(e) => {
+              if (key === 'name') {
+                setName(e.target.value);
+              } else if (key === 'alt') {
+                setAlt(e.target.value);
+              }
+            }}
             className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-200"
           />
         ) : (
@@ -157,22 +197,74 @@ export default function FileDetailsModal({ file, isOpen, onClose, onSave }: File
             {!isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 cursor-pointer"
+                className="px-4 py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600"
               >
                 Editar
               </button>
             )}
           </div>
-          {renderField('Nombre', file.name, 'name')}
-          {renderField('Texto alternativo', file.alt, 'alt')}
-          
+
+          <div className="space-y-4">
+            {renderField('Nombre', name, 'name')}
+            {renderField('Texto alternativo', alt, 'alt')}
+
+            {/* Categorías movidas aquí */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm font-medium text-gray-400">Categorías</label>
+                {isEditing && (
+                  <span className="text-xs text-blue-400">Selecciona las categorías</span>
+                )}
+              </div>
+              {isEditing ? (
+                <div className="flex flex-wrap gap-2 p-3 bg-gray-700 rounded-lg">
+                  {MEDIA_CATEGORIES.map(category => (
+                    <Chip
+                      key={category}
+                      label={category}
+                      selected={selectedCategories.includes(category)}
+                      onClick={() => {
+                        setSelectedCategories(prev => 
+                          prev.includes(category)
+                            ? prev.filter(c => c !== category)
+                            : [...prev, category]
+                        );
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2 p-3 bg-gray-800 rounded-lg">
+                  {selectedCategories.map(category => (
+                    <span
+                      key={category}
+                      className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded-full text-xs"
+                    >
+                      {category}
+                    </span>
+                  ))}
+                  {selectedCategories.length === 0 && (
+                    <span className="text-gray-500">Sin categorías</span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Acciones de edición */}
           {isEditing && (
-            <div className="flex justify-end gap-3 mt-4">
+            <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => {
-                  setEditedFile(file);
                   setIsEditing(false);
+                  setName(file.name);
+                  setAlt(file.alt || '');
+                  setSelectedCategories(
+                    Array.isArray(file.categories) ? file.categories : 
+                    typeof file.categories === 'object' && file.categories !== null
+                      ? Object.values(file.categories)
+                      : []
+                  );
                 }}
                 className="px-4 py-2 text-gray-300 hover:bg-gray-700 rounded-md cursor-pointer"
                 disabled={isSaving}

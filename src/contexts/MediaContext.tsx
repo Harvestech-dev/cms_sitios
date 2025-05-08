@@ -116,32 +116,24 @@ export function MediaProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateFile = async (fileId: string, data: Partial<MediaFile>) => {
+  const updateFile = async (id: string, data: Partial<MediaFile>) => {
     try {
-      // Actualizamos en la base de datos
-      const { data: updatedData, error: dbError } = await supabase
+      const { error } = await supabase
         .from('media_files')
-        .update({
-          name: data.name,
-          alt: data.alt
-        })
-        .eq('id', fileId)
-        .select()
-        .single();
+        .update(data)
+        .eq('id', id);
 
-      if (dbError) throw dbError;
+      if (error) throw error;
 
-      // Actualizamos el estado local
+      // Actualizar el estado local
       setFiles(prev => prev.map(file => 
-        file.id === fileId 
-          ? { ...file, ...updatedData }
-          : file
+        file.id === id ? { ...file, ...data } : file
       ));
 
-      return updatedData;
-    } catch (err) {
-      console.error('Error al actualizar archivo:', err);
-      throw err;
+      return true;
+    } catch (error) {
+      console.error('Error updating file:', error);
+      throw error;
     }
   };
 

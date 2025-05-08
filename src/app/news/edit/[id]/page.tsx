@@ -39,8 +39,9 @@ export default function NewsEditPage() {
   }, [id]);
 
   useEffect(() => {
-    // Establecer vista inicial basada en el parámetro de la URL
-    if (searchParams.get('view') === 'preview') {
+    // Obtener el modo de vista de los parámetros de búsqueda
+    const view = searchParams.get('view');
+    if (view === 'preview') {
       setInitialView('preview');
     }
   }, [searchParams]);

@@ -24,3 +24,31 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Estilos para el editor markdown */
+.w-md-editor {
+  background-color: #1f2937 !important;
+}
+
+.w-md-editor-text-pre > code,
+.w-md-editor-text-input {
+  color: #e5e7eb !important;
+  -webkit-text-fill-color: #e5e7eb !important;
+}
+
+.w-md-editor-toolbar {
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+}
+
+.w-md-editor-toolbar button {
+  color: #9ca3af !important;
+}
+
+.w-md-editor-toolbar button:hover {
+  color: #e5e7eb !important;
+}
+
+.wmde-markdown {
+  background-color: transparent !important;
+}

@@ -25,7 +25,7 @@ export default function Navbar() {
         </Link>
 
         {/* Navegación Principal */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="flex items-center gap-2 px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-md">
           {navigationItems.map((item) => (
             <Link
               key={item.name}
@@ -43,7 +43,9 @@ export default function Navbar() {
             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
             className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded-full text-gray-300"
           >
-            <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
+            <div 
+                        className="flex items-center gap-2 px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-md"
+>
               <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>

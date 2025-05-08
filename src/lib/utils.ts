@@ -13,4 +13,22 @@ export const formatDate = (date: string): string => {
     month: 'short',
     day: 'numeric'
   });
+};
+
+export const formatPrice = (price: number, compact = false): string => {
+  if (compact && price >= 1000) {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      notation: 'compact',
+      maximumFractionDigits: 1
+    }).format(price);
+  }
+
+  return new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency: 'ARS',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(price);
 }; 

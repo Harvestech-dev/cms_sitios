@@ -1,11 +1,11 @@
 export interface MediaFile {
   id: string;
   name: string;
+  url: string;
   type: string;
   size: number;
-  url: string;
+  created_at: string;
+  categories?: string[];
   alt?: string;
   storage_path?: string;
-  created_at: string;
-  updated_at?: string;
 } 

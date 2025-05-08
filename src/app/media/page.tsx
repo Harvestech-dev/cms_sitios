@@ -8,8 +8,18 @@ import { formatFileSize, formatDate } from '@/lib/utils';
 import { MediaFile } from '@/types/media';
 import FileDetailsModal from '@/components/media/FileDetailsModal';
 import { useToast } from '@/contexts/ToastContext';
+import { Chip } from '@/components/common/Chip';
 
 type FilterType = 'all' | 'images' | 'videos' | 'documents';
+
+const MEDIA_CATEGORIES = [
+  'noticias',
+  'productos',
+  'banners',
+  'logos',
+  'iconos',
+  'componentes'
+] as const;
 
 export default function MediaPage() {
   const { files, loading, refreshMedia, deleteFile, updateFile } = useMedia();
@@ -18,9 +28,17 @@ export default function MediaPage() {
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [filter, setFilter] = useState<FilterType>('all');
   const { showToast } = useToast();
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const filterFiles = (files: MediaFile[]) => {
     let filtered = files;
+
+    // Log inicial
+    console.log('Filtrando archivos:', {
+      totalFiles: files.length,
+      selectedCategories,
+      filesWithCategories: files.filter(f => Array.isArray(f.categories) && f.categories.length > 0).length
+    });
 
     // Aplicar filtro por tipo
     switch (filter) {
@@ -44,6 +62,38 @@ export default function MediaPage() {
         file.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
+
+    // Aplicar filtro por categoría
+    if (selectedCategories.length > 0) {
+      filtered = filtered.filter(file => {
+        // Asegurarnos de que categories sea un array
+        const fileCategories = Array.isArray(file.categories) 
+          ? file.categories 
+          : typeof file.categories === 'object' && file.categories !== null
+            ? Object.values(file.categories)
+            : [];
+
+        // Log para debugging
+        console.log('Verificando categorías para:', {
+          fileName: file.name,
+          fileCategories,
+          selectedCategories,
+          rawCategories: file.categories
+        });
+
+        return fileCategories.some(category => selectedCategories.includes(category));
+      });
+    }
+
+    // Log final
+    console.log('Resultado del filtrado:', {
+      filteredCount: filtered.length,
+      appliedFilters: {
+        type: filter,
+        hasSearch: !!searchTerm,
+        categoryCount: selectedCategories.length
+      }
+    });
 
     return filtered;
   };
@@ -111,13 +161,19 @@ export default function MediaPage() {
     try {
       await updateFile(updatedFile.id, {
         name: updatedFile.name,
-        alt: updatedFile.alt
+        alt: updatedFile.alt,
+        categories: updatedFile.categories
       });
+      
+      await refreshMedia();
       setSelectedFile(null);
       showToast('Archivo actualizado correctamente', 'success');
     } catch (error) {
       console.error('Error al actualizar archivo:', error);
-      showToast('Error al actualizar el archivo', 'error');
+      showToast(
+        'Error al actualizar el archivo. Por favor, inténtalo de nuevo.', 
+        'error'
+      );
     }
   };
 
@@ -146,54 +202,115 @@ export default function MediaPage() {
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white mb-4">Biblioteca de medios</h1>
           <div className="flex flex-col gap-4">
-            {/* Filtros */}
-            <div className="flex flex-wrap gap-2">
-              {filterButtons.map(({ type, label, icon }) => (
-                <button
-                  key={type}
-                  onClick={() => setFilter(type)}
-                  className={`
-                    flex items-center gap-2 px-4 py-2 rounded-md
-                    ${filter === type 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}
-                  `}
-                >
-                  <IconRenderer icon={icon} className="w-4 h-4" />
-                  {label}
-                </button>
-              ))}
-            </div>
+            {/* Barra de búsqueda y filtros */}
+            <div className="bg-gray-800 p-4 rounded-lg space-y-4">
+              {/* Búsqueda y vista */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    placeholder="Buscar archivos..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setView('grid')}
+                    className={`px-3 py-2 rounded-md ${
+                      view === 'grid' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
+                    }`}
+                  >
+                    <IconRenderer icon="FaThLarge" className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => setView('list')}
+                    className={`px-3 py-2 rounded-md ${
+                      view === 'list' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
+                    }`}
+                  >
+                    <IconRenderer icon="FaList" className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
 
-            {/* Barra de búsqueda y vista */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <input
-                  type="text"
-                  placeholder="Buscar archivos..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              {/* Filtros de tipo y categorías */}
+              <div className="flex flex-col gap-4">
+                {/* Tipos de archivo */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-300 mb-2">Tipo de archivo</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {filterButtons.map(({ type, label, icon }) => (
+                      <button
+                        key={type}
+                        onClick={() => setFilter(type)}
+                        className={`
+                          flex items-center gap-2 px-4 py-2 rounded-md
+                          ${filter === type 
+                            ? 'bg-blue-600 text-white' 
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}
+                        `}
+                      >
+                        <IconRenderer icon={icon} className="w-4 h-4" />
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Categorías */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-300 mb-2">Categorías</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {MEDIA_CATEGORIES.map(category => (
+                      <Chip
+                        key={category}
+                        label={category}
+                        selected={selectedCategories.includes(category)}
+                        onClick={() => {
+                          setSelectedCategories(prev => 
+                            prev.includes(category)
+                              ? prev.filter(c => c !== category)
+                              : [...prev, category]
+                          );
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setView('grid')}
-                  className={`px-3 py-2 rounded-md ${
-                    view === 'grid' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
-                  }`}
-                >
-                  <IconRenderer icon="FaThLarge" className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setView('list')}
-                  className={`px-3 py-2 rounded-md ${
-                    view === 'list' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
-                  }`}
-                >
-                  <IconRenderer icon="FaList" className="w-5 h-5" />
-                </button>
-              </div>
+
+              {/* Filtros activos */}
+              {selectedCategories.length > 0 && (
+                <div className="flex items-center gap-2 pt-4 border-t border-gray-700">
+                  <span className="text-sm text-gray-400">Filtros activos:</span>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedCategories.map(category => (
+                      <span
+                        key={category}
+                        className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded-full text-xs flex items-center gap-1"
+                      >
+                        {category}
+                        <button
+                          onClick={() => setSelectedCategories(prev => 
+                            prev.filter(c => c !== category)
+                          )}
+                          className="hover:text-blue-200"
+                        >
+                          <IconRenderer icon="FaTimes" className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                    <button
+                      onClick={() => setSelectedCategories([])}
+                      className="text-xs text-red-400 hover:text-red-300"
+                    >
+                      Limpiar filtros
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -305,7 +422,7 @@ export default function MediaPage() {
           file={selectedFile}
           isOpen={!!selectedFile}
           onClose={() => setSelectedFile(null)}
-          onSave={handleUpdateFile}
+          onUpdate={handleUpdateFile}
         />
       )}
     </>

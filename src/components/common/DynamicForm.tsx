@@ -122,7 +122,7 @@ export default function DynamicForm({ isOpen, onClose, onSave, initialData, titl
     }
   };
 
-  const renderArrayField = (field: FormField) => {
+  const renderArrayField = (field: FormField, value: any, onChange: (value: any) => void) => {
     return (
       <div className="space-y-4">
         <Controller
@@ -448,24 +448,21 @@ export default function DynamicForm({ isOpen, onClose, onSave, initialData, titl
 
   const renderField = (field: FormField) => {
     return (
-      <div className="mb-4">
+      <div key={field.key} className="mb-4">
         <label className="block text-sm font-medium text-gray-300 mb-2">
           {field.label}
           {field.required && <span className="text-red-400 ml-1">*</span>}
         </label>
-        
-        {field.isArray ? (
-          renderArrayField(field)
-        ) : (
-          <Controller
-            name={field.key}
-            control={control}
-            rules={{ required: field.required }}
-            render={({ field: { value, onChange } }) => 
-              renderSingleField(field.type, value, onChange, field.key)
-            }
-          />
-        )}
+        <Controller
+          name={field.key}
+          control={control}
+          rules={{ required: field.required }}
+          render={({ field: { value, onChange } }) => (
+            field.isArray 
+              ? renderArrayField(field, value, onChange)
+              : renderSingleField(field.type, value, onChange, field.key)
+          )}
+        />
       </div>
     );
   };

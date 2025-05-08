@@ -12,20 +12,12 @@
     {
       "label": "Productos",
       "href": "/products",
-      "icon": "FaBox",
-      "items": [
-        { "label": "Catálogo", "href": "/products/catalog" },
-        { "label": "Categorías", "href": "/products/categories" }
-      ]
+      "icon": "FaBox"
     },
     {
       "label": "Noticias",
       "href": "/news",
-      "icon": "FaNewspaper",
-      "items": [
-        { "label": "Noticias", "href": "/noticias" },
-        { "label": "Novedades", "href": "/novedades" }
-      ]
+      "icon": "FaNewspaper"
     },
     {
       "label": "Media",

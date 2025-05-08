@@ -1,0 +1,62 @@
+ Etapa 4: Autenticación, Roles y Permisos
+ Integrar Supabase Auth (email/password, Google, etc.)
+
+ Crear sistema de roles: admin, editor, viewer
+
+ Restringir accesos al CMS según rol
+
+admin: acceso total
+
+editor: puede editar contenido, no configuraciones
+
+viewer: solo lectura
+
+ Relacionar user_id con creaciones de contenido (autores)
+
+ Proteger rutas y validar token de sesión
+
+ Pantalla de login y control de sesión
+
+🧩 Etapa 5: CMS modular y escalable
+ Consolidar estructura de bloques reusables (sections, components)
+
+ Permitir configuración de qué secciones aparecen en cada sitio
+
+ Editor de contenido genérico basado en JSON estructurado
+
+ Histórico de cambios (mínimo: fecha y user_id de última modificación)
+
+🔧 Etapa 6: Ajustes generales y calidad
+ Validaciones en formularios
+
+ Mensajes de error, loading y feedback visual
+
+ Gestión de estado clara (loading, success, error)
+
+ Auditoría mínima: logs de creación, edición y eliminación
+
+ Accesibilidad y experiencia de uso cuidada
+
+📌 Otras secciones o módulos posibles a futuro
+Blog con comentarios
+
+Sección de eventos o agenda
+
+Galerías multimedia
+
+Módulo de usuarios finales (para apps públicas)
+
+Integraciones con terceros (mailing, analytics, etc.)
+
+Modo multi-idioma
+
+🎯 Próximo paso
+Podemos ahora elegir cuál de estas etapas querés priorizar:
+
+Avanzar en el CRUD completo de Noticias.
+
+Diagramar y modelar la sección de Productos.
+
+Empezar con la Autenticación y roles.
+
+Comenzar a modularizar el CMS para escalar.

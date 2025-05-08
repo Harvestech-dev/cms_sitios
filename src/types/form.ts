@@ -13,8 +13,11 @@ export type FieldType =
 
 export interface ImageField {
   id: string;
-  alt: string;
-  url?: string;
+  url: string;
+  name: string;
+  alt?: string;
+  type: string;
+  categories?: string[];
 }
 
 export interface LinkField {

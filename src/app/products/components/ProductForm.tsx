@@ -13,7 +13,6 @@ import ProductPreview from '@/app/products/components/ProductPreview';
 import { MediaFile } from '@/types/media';
 
 import { Chip } from '@/components/common/Chip';
-import { ImageField } from '@/types/form';
 import MDEditor from '@uiw/react-md-editor';
 
 interface ProductFormProps {
@@ -44,13 +43,26 @@ const slugify = (text: string): string => {
 };
 
 // Función para sanitizar el slug manual (más permisiva)
-const sanitizeSlug = (text: string): string => {
+/* const sanitizeSlug = (text: string): string => {
   return text
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9-\s]/g, '') // Permite letras, números, guiones y espacios
     .substring(0, 80);
-};
+}; */
+
+interface ProductFormData {
+  title: string;
+  slug: string;
+  description: string;
+  price: number;
+  status: ProductStatus;
+  image_url?: string;
+  gallery: string[];
+  tags: string[];
+  featured: boolean;
+  categories: string[];
+}
 
 export default function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
   const router = useRouter();
@@ -61,51 +73,29 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
     title: initialData?.title || '',
     slug: initialData?.slug || '',
     description: initialData?.description || '',
-    summary: initialData?.summary || '',
     price: initialData?.price || 0,
-    featured: initialData?.featured || false,
-    image_url: initialData?.gallery?.[0] || '',
+    status: initialData?.status || 'draft',
+    image_url: initialData?.image_url || '',
     gallery: initialData?.gallery || [],
     tags: initialData?.tags || [],
-    categories: initialData?.categories || [],
-    status: initialData?.status || 'draft',
-    order: initialData?.order || 0
+    featured: initialData?.featured || false,
+    categories: initialData?.categories || []
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [newTag, setNewTag] = useState('');
   const [showImagePicker, setShowImagePicker] = useState(false);
-  const [imagePickerMode, setImagePickerMode] = useState<'main' | 'gallery'>('main');
-  const [isCustomSlug, setIsCustomSlug] = useState(false);
+  const [newTag, setNewTag] = useState('');
 
   // Generar slug automáticamente cuando cambia el título
   useEffect(() => {
-    if (!isCustomSlug && formData.title) {
+    if (!formData.slug && formData.title) {
       setFormData(prev => ({
         ...prev,
         slug: slugify(formData.title)
       }));
     }
-  }, [formData.title, isCustomSlug]);
-
-  // Modificar el manejador de cambio manual
-  const handleSlugChange = (value: string) => {
-    setIsCustomSlug(true);
-    setFormData(prev => ({
-      ...prev,
-      slug: sanitizeSlug(value)
-    }));
-  };
-
-  // Restablecer slug automático
-  const handleResetSlug = () => {
-    setIsCustomSlug(false);
-    setFormData(prev => ({
-      ...prev,
-      slug: slugify(formData.title)
-    }));
-  };
+  }, [formData.title]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,27 +117,19 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
     }
   };
 
-  const handleImageSelect = (image: ImageField) => {
-    if (!formData.gallery.includes(image.url)) {
-      setFormData(prev => {
-        const newGallery = [...prev.gallery, image.url];
-        return {
-          ...prev,
-          gallery: newGallery,
-          image_url: newGallery[0]
-        };
-      });
-    }
+  const handleImageSelect = (image: MediaFile) => {
+    setFormData(prev => ({
+      ...prev,
+      image_url: image.url,
+      image: {
+        url: image.url,
+        alt: image.alt || '',
+        id: image.id,
+        name: image.name,
+        type: image.type
+      }
+    }));
     setShowImagePicker(false);
-  };
-
-  const handleGallerySelect = (image: ImageField) => {
-    if (!formData.gallery.includes(image.url)) {
-      setFormData(prev => ({
-        ...prev,
-        gallery: [...prev.gallery, image.url]
-      }));
-    }
   };
 
   const handleRemoveFromGallery = (imageUrl: string) => {
@@ -156,7 +138,8 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
       return {
         ...prev,
         gallery: newGallery,
-        image_url: newGallery[0] || ''
+        image_url: '',
+        image: null
       };
     });
   };
@@ -167,7 +150,14 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
       return {
         ...prev,
         gallery: [imageUrl, ...newGallery],
-        image_url: imageUrl
+        image_url: imageUrl,
+        image: {
+          url: imageUrl,
+          alt: '',
+          id: '',
+          name: '',
+          type: ''
+        }
       };
     });
   };
@@ -178,7 +168,6 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
         ...prev,
         tags: [...prev.tags, newTag.trim()]
       }));
-      setNewTag('');
     }
   };
 
@@ -187,15 +176,6 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
       ...prev,
       tags: prev.tags.filter(t => t !== tag)
     }));
-  };
-
-  const handleUploadComplete = async (mediaFile: MediaFile) => {
-    if (!formData.gallery.includes(mediaFile.url)) {
-      setFormData(prev => ({
-        ...prev,
-        gallery: [...prev.gallery, mediaFile.url]
-      }));
-    }
   };
 
   const handleCategoryToggle = (category: string) => {
@@ -256,38 +236,16 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
                   <label className="block text-sm font-medium text-gray-300">
                     Slug
                   </label>
-                  {isCustomSlug && (
-                    <button
-                      type="button"
-                      onClick={handleResetSlug}
-                      className="text-xs text-blue-400 hover:text-blue-300"
-                    >
-                      Restablecer automático
-                    </button>
-                  )}
                 </div>
                 <div className="relative">
                   <input
                     type="text"
                     value={formData.slug}
-                    onChange={(e) => handleSlugChange(e.target.value)}
-                    className={`
-                      w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-200
-                      ${isCustomSlug ? 'border-yellow-500/50' : ''}
-                    `}
+                    onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+                    className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-200"
                     required
                   />
-                  {isCustomSlug && (
-                    <span className="absolute right-2 top-2 text-yellow-500">
-                      <IconRenderer icon="FaEdit" className="w-4 h-4" />
-                    </span>
-                  )}
                 </div>
-                <p className="mt-1 text-xs text-gray-400">
-                  {isCustomSlug 
-                    ? 'Slug personalizado' 
-                    : 'Se genera automáticamente desde el título'}
-                </p>
               </div>
             </div>
 

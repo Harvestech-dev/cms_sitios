@@ -10,6 +10,7 @@ import MDEditor from '@uiw/react-md-editor';
 import rehypeSanitize from 'rehype-sanitize';
 import '@uiw/react-markdown-preview/markdown.css';
 import '@uiw/react-md-editor/markdown-editor.css';
+import Image from 'next/image';
 
 interface NewsFormProps {
   onSave: (data: NewsFormData, status: NewsStatus) => Promise<void>;
@@ -58,6 +59,15 @@ export default function NewsForm({ onSave, onCancel, initialData, initialView = 
     }
   }, [initialData, reset]);
 
+  useEffect(() => {
+    if (initialView) {
+      setViewMode(initialView);
+    }
+    if (initialData && editConfirmed) {
+      reset(initialData);
+    }
+  }, [initialView, editConfirmed, initialData, reset]);
+
   // Función para verificar si la imagen ha cambiado
   const hasImageChanged = useCallback(() => {
     const currentImgSrc = watch('img_src');
@@ -80,10 +90,6 @@ export default function NewsForm({ onSave, onCancel, initialData, initialView = 
       }
     }
   }, [isDirty, isPublished, hasPendingChanges]);
-
-  useEffect(() => {
-    setViewMode(initialView);
-  }, [initialView]);
 
   const onSubmit = async (data: NewsFormData, status: NewsStatus = watchStatus) => {
     if (isPublished && isDirty && status === 'published') {
@@ -294,9 +300,11 @@ export default function NewsForm({ onSave, onCancel, initialData, initialView = 
                 <div className="flex gap-4 items-start">
                   {watch('img_src') && (
                     <div className="relative w-32 h-32">
-                      <img
+                      <Image
                         src={watch('img_src')}
                         alt={watch('img_alt') || ''}
+                        width={128}
+                        height={128}
                         className="w-full h-full object-cover rounded"
                       />
                       <button
@@ -516,9 +524,11 @@ export default function NewsForm({ onSave, onCancel, initialData, initialView = 
               {/* Imagen destacada */}
               {watch('img_src') && (
                 <div className="my-8">
-                  <img
+                  <Image
                     src={watch('img_src')}
                     alt={watch('img_alt') || watchTitle}
+                    width={300}
+                    height={200}
                     className="w-full max-h-[400px] object-cover rounded-lg shadow-lg"
                   />
                 </div>

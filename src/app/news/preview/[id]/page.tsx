@@ -17,13 +17,19 @@ export default function NewsPreviewPage() {
   const id = params.id as string;
 
   useEffect(() => {
-    const newsData = getNewsById(id);
-    if (newsData) {
-      setNews(newsData);
-    } else {
-      router.push('/news');
-    }
-  }, [id]);
+    const loadNews = async () => {
+      try {
+        const news = await getNewsById(params.id);
+        if (!news) {
+          router.push('/news');
+        }
+      } catch (error) {
+        console.error('Error loading news:', error);
+        router.push('/news');
+      }
+    };
+    loadNews();
+  }, [params.id, getNewsById, router]);
 
   if (!news) {
     return null;

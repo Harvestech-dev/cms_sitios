@@ -2,7 +2,7 @@
 
 import { useState, useEffect, ReactElement } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { FormField, FieldType, ImageField, LinkField, ItemField } from '@/types/form';
+import { FormField, FieldType } from '@/types/form';
 import ImagePicker from './ImagePicker';
 import Drawer from './Drawer';
 import { useToast } from '@/contexts/ToastContext';
@@ -12,14 +12,24 @@ import { useIconSelector } from '@/contexts/IconSelectorContext';
 interface DynamicFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: Record<string, any>) => Promise<void>;
-  initialData: Record<string, any>;
+  onSave: (data: Record<string, unknown>) => Promise<void>;
+  initialData: Record<string, unknown>;
   title: string;
 }
 
 interface FieldGroup {
   title: string;
   fields: FormField[];
+}
+
+interface FormValue {
+  url?: string;
+  alt?: string;
+  icon?: string;
+  label?: string;
+  text?: string;
+  text_subject?: string;
+  text_body?: string;
 }
 
 export default function DynamicForm({ isOpen, onClose, onSave, initialData, title }: DynamicFormProps) {
@@ -35,7 +45,7 @@ export default function DynamicForm({ isOpen, onClose, onSave, initialData, titl
     handleSubmit,
     reset,
     setValue,
-    formState: { isDirty }
+    formState: { }
   } = useForm({
     defaultValues: initialData
   });
@@ -48,7 +58,6 @@ export default function DynamicForm({ isOpen, onClose, onSave, initialData, titl
       } else if (typeof value === 'object' && value !== null) {
         acc[key] = value;
       } else if (value === null || value === undefined) {
-        // Inicializar arrays vacíos para campos que deberían ser arrays
         const type = getFieldType(key);
         if (['gallery', 'item'].includes(type)) {
           acc[key] = [];
@@ -59,11 +68,10 @@ export default function DynamicForm({ isOpen, onClose, onSave, initialData, titl
         acc[key] = value;
       }
       return acc;
-    }, {} as Record<string, any>);
+    }, {} as Record<string, unknown>);
 
     reset(initializedData);
     
-    // Convertir datos a campos de formulario
     const formFields = Object.entries(initializedData)
       .filter(([key]) => !shouldExcludeField(key))
       .map(([key, value]) => ({
@@ -108,7 +116,7 @@ export default function DynamicForm({ isOpen, onClose, onSave, initialData, titl
       .join(' ');
   };
 
-  const onSubmitForm = async (data: Record<string, any>) => {
+  const onSubmitForm = async (data: Record<string, unknown>) => {
     try {
       setIsSaving(true);
       await onSave(data);
@@ -122,75 +130,47 @@ export default function DynamicForm({ isOpen, onClose, onSave, initialData, titl
     }
   };
 
-  const renderArrayField = (field: FormField, value: any, onChange: (value: any) => void) => {
+  const renderArrayField = (
+    field: FormField, 
+    arrayValue: unknown[], 
+    onArrayChange: (value: unknown[]) => void
+  ) => {
     return (
       <div className="space-y-4">
         <Controller
           name={field.key}
           control={control}
-          render={({ field: { value = [], onChange } }) => {
-            const arrayValue = Array.isArray(value) ? value : [];
-            
-            return (
-              <div>
-                {arrayValue.map((item: any, index: number) => (
-                  <div key={index} className="flex items-center gap-2 mb-2">
-                    {renderSingleField(
-                      field.type, 
-                      item, 
-                      (newValue) => {
-                        const newArray = [...arrayValue];
-                        newArray[index] = newValue;
-                        onChange(newArray);
-                      }, 
-                      `${field.key}.${index}`
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const newArray = arrayValue.filter((_: any, i: number) => i !== index);
-                        onChange(newArray);
-                      }}
-                      className="p-1 text-red-400 hover:text-red-300"
-                    >
-                      <IconRender icon="FaTrash" className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newItem = getEmptyValue(field.type);
-                    onChange([...arrayValue, newItem]);
-                  }}
-                  className="mt-2 px-3 py-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600"
-                >
-                  Agregar
-                </button>
-              </div>
-            );
-          }}
+          render={({ field: { onChange: fieldOnChange, value = [] } }) => (
+            <div>
+              {value.map((item: unknown, index: number) => (
+                <div key={index} className="flex items-center gap-2 mb-2">
+                  {renderSingleField(
+                    field.type,
+                    item,
+                    (newValue) => {
+                      const newArray = [...value];
+                      newArray[index] = newValue;
+                      fieldOnChange(newArray);
+                    },
+                    `${field.key}_${index}`
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newArray = value.filter((_: unknown, i: number) => i !== index);
+                      onArrayChange(newArray);
+                    }}
+                    className="p-1 text-red-400 hover:text-red-300"
+                  >
+                    <IconRender icon="FaTimes" className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         />
       </div>
     );
-  };
-
-  const getEmptyValue = (type: FieldType) => {
-    switch (type) {
-      case 'img':
-        return { id: '', alt: '' };
-      case 'link':
-      case 'btn':
-      case 'social':
-      case 'contact':
-        return { label: '', url: '', icon: '' };
-      case 'item':
-        return { icon: '', text: '' };
-      case 'template_email':
-        return { text_subject: '', text_body: '' };
-      default:
-        return '';
-    }
   };
 
   const handleIconClick = (fieldKey: string) => {
@@ -241,8 +221,8 @@ export default function DynamicForm({ isOpen, onClose, onSave, initialData, titl
 
   const renderSingleField = (
     type: FieldType,
-    value: any,
-    onChange: (value: any) => void,
+    value: FormValue,
+    onChange: (value: FormValue) => void,
     fieldKey: string
   ): ReactElement => {
     switch (type) {
@@ -250,8 +230,8 @@ export default function DynamicForm({ isOpen, onClose, onSave, initialData, titl
         return (
           <input
             type="text"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
+            value={value?.text || ''}
+            onChange={(e) => onChange({ text: e.target.value })}
             className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-200"
           />
         );
@@ -260,7 +240,7 @@ export default function DynamicForm({ isOpen, onClose, onSave, initialData, titl
         return (
           <textarea
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => onChange({ ...value, text: e.target.value })}
             rows={4}
             className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-200"
           />

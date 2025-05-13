@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { NewsItem, NewsFilters, NewsFormData } from '@/types/news';
 import { useToast } from './ToastContext';
@@ -118,14 +118,7 @@ export function NewsProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Aplicar ordenamiento
-    if (filters.sortBy) {
-      filtered.sort((a, b) => {
-        const aValue = a[filters.sortBy as keyof NewsItem];
-        const bValue = b[filters.sortBy as keyof NewsItem];
-        const order = filters.sortOrder === 'asc' ? 1 : -1;
-        return aValue > bValue ? order : -order;
-      });
-    }
+    filtered = sortNews(filtered, filters);
 
     // Actualizar total antes de la paginación
     setTotalCount(filtered.length);
@@ -230,4 +223,16 @@ export function useNews() {
     throw new Error('useNews debe usarse dentro de un NewsProvider');
   }
   return context;
-} 
+}
+
+const sortNews = (news: NewsItem[], filters: NewsFilters) => {
+  if (filters.sortBy) {
+    return [...news].sort((a, b) => {
+      const aValue = a[filters.sortBy as keyof NewsItem] ?? '';
+      const bValue = b[filters.sortBy as keyof NewsItem] ?? '';
+      const order = filters.sortOrder === 'asc' ? 1 : -1;
+      return aValue > bValue ? order : -order;
+    });
+  }
+  return news;
+}; 

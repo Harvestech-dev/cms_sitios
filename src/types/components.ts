@@ -2,12 +2,15 @@ export interface ComponentData {
   id: string;
   name: string;
   type: string;
-  status: 'draft' | 'published';
-  content: ComponentContent;
+  page: string;
+  icon?: string;
+  status?: 'draft' | 'published';
+  content?: Record<string, unknown>;
+  order?: number;
 }
 
 export interface ComponentContent {
-  [key: string]: any; // Esto se puede tipar más específicamente según tus necesidades
+  [key: string]: unknown;
 }
 
 export interface ImageField {

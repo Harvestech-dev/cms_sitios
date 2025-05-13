@@ -119,29 +119,30 @@ export default function FileDetailsModal({ file, isOpen, onClose, onUpdate }: Fi
       size="xl"
     >
       <div className="p-6 max-h-[80vh] overflow-y-auto">
-        <div className="flex gap-8">
-          {/* Preview - Lado izquierdo */}
-          <div className="w-1/3">
-            <div className="aspect-square bg-gray-800 rounded-lg overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          {/* Vista previa */}
+          <div className="bg-gray-800 rounded-lg p-6">
+            <h3 className="text-lg font-medium text-white mb-4">Vista previa</h3>
+            <div className="aspect-square relative rounded-lg overflow-hidden bg-gray-700">
               {file.type.startsWith('image/') ? (
                 <img
                   src={file.url}
-                  alt={file.name}
-                  className="w-full h-full object-cover"
+                  alt={file.alt || file.name}
+                  className="w-full h-full object-contain"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
+                <div className="flex items-center justify-center h-full">
                   <IconRenderer 
                     icon={file.type.includes('pdf') ? 'FaFilePdf' : 'FaFile'} 
-                    className="w-20 h-20 text-gray-600" 
+                    className="w-20 h-20 text-gray-500" 
                   />
                 </div>
               )}
             </div>
           </div>
 
-          {/* Información - Lado derecho */}
-          <div className="flex-1">
+          {/* Detalles */}
+          <div className="bg-gray-800 rounded-lg p-6">
             {/* Información técnica */}
             <div className="mb-6">
               <h3 className="text-lg font-medium text-white mb-4">Información técnica</h3>

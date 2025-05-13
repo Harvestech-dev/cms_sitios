@@ -45,7 +45,7 @@ export interface FormField {
   key: string;
   type: FieldType;
   label: string;
-  value: string | ImageField | LinkField | ItemField | EmailTemplate | Array<any>;
+  value: string | ImageField | LinkField | ItemField | EmailTemplate | Array<unknown>;
   required: boolean;
   isArray?: boolean;
   group?: string;

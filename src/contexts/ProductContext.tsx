@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Product, ProductFilters, ProductFormData } from '@/types/products';
 import { useToast } from './ToastContext';
@@ -34,7 +34,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   const [filters, setFilters] = useState<ProductFilters>(defaultFilters);
   const { showToast } = useToast();
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       let query = supabase
@@ -75,11 +75,11 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, showToast]);
 
   useEffect(() => {
     fetchProducts();
-  }, [filters]);
+  }, [fetchProducts]);
 
   const createProduct = async (data: ProductFormData): Promise<Product> => {
     try {

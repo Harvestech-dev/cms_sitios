@@ -12,6 +12,7 @@ export async function GET() {
 
     return NextResponse.json(data);
   } catch (error) {
+    console.error('Error al cargar componentes:', error);
     return NextResponse.json(
       { error: 'Error al cargar componentes' },
       { status: 500 }

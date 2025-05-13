@@ -2,23 +2,12 @@
 
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { uploadFile, createMediaRecord } from '@/lib/supabase-storage';
 import IconRenderer from './IconRenderer';
 import { supabase } from '@/lib/supabase';
-
-interface MediaFile {
-  id: string;
-  created_at: string;
-  type: string;
-  url: string;
-  alt: string;
-  name: string;
-  storage_path: string;
-  size: number;
-}
+import type { MediaFile } from '@/types/media';
 
 interface FileUploadProps {
-  onUploadComplete?: (mediaFile: MediaFile) => void;
+  onUploadComplete?: (file: MediaFile) => void;
   onError?: (error: Error) => void;
 }
 
@@ -75,15 +64,15 @@ export default function FileUpload({ onUploadComplete, onError }: FileUploadProp
           clearInterval(progressInterval);
           setProgress(100);
 
-          onUploadComplete && onUploadComplete(mediaFile);
+          handleUploadComplete(mediaFile);
         } catch (error) {
           clearInterval(progressInterval);
-          throw error;
+          handleError(error);
         }
       }
     } catch (error) {
       console.error('Error detallado:', error);
-      onError && onError(error instanceof Error ? error : new Error('Error desconocido'));
+      handleError(error instanceof Error ? error : new Error('Error desconocido'));
     } finally {
       setUploading(false);
       setProgress(0);
@@ -101,13 +90,25 @@ export default function FileUpload({ onUploadComplete, onError }: FileUploadProp
     }
   });
 
+  const handleUploadComplete = (mediaFile: MediaFile) => {
+    if (onUploadComplete) {
+      onUploadComplete(mediaFile);
+    }
+  };
+
+  const handleError = (error: unknown) => {
+    if (onError) {
+      onError(error instanceof Error ? error : new Error('Error desconocido'));
+    }
+  };
+
   return (
     <div
       {...getRootProps()}
       className={`
-        border-2 border-dashed rounded-lg p-8 text-center
-        ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-600'}
-        ${uploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-700'}
+        border-2 border-dashed rounded-lg p-8 text-center w-full
+        ${isDragActive ? 'border-blue-500 bg-blue-50/5' : 'border-gray-600'}
+        ${uploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-700/50'}
         transition-all duration-200 ease-in-out
       `}
     >

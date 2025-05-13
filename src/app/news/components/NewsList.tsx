@@ -6,7 +6,6 @@ import { useNews } from '@/contexts/NewsContext';
 import { NewsStatus, NewsFilters } from '@/types/news';
 import IconRender from '@/components/common/IconRender';
 import { formatDate } from '@/lib/utils';
-import { debounce } from 'lodash';
 import { Combobox } from '@headlessui/react';
 
 type SortField = 'title' | 'created_at' | 'published_at' | 'author';
@@ -103,10 +102,14 @@ export default function NewsList() {
 
   // Función para manejar la búsqueda con debounce
   const debouncedSearch = useCallback(
-    debounce((term: string) => {
-      setFilters(prev => ({ ...prev, search: term, page: 1 }));
-    }, 500),
-    [setFilters]
+    (term: string) => {
+      setFilters({
+        ...filters,
+        search: term,
+        page: 1
+      });
+    },
+    [filters, setFilters]
   );
 
   // Manejador del cambio en el input
@@ -118,8 +121,11 @@ export default function NewsList() {
 
   // Limpiar búsqueda
   const handleClearSearch = () => {
-    setSearchTerm(''); // Limpiar estado local
-    setFilters(prev => ({ ...prev, search: '' })); // Limpiar filtro
+    setSearchTerm('');
+    setFilters({
+      ...filters,
+      search: ''
+    });
   };
 
   if (loading) {
@@ -166,7 +172,10 @@ export default function NewsList() {
             {/* Estado */}
             <select
               value={filters.status || ''}
-              onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value as NewsStatus }))}
+              onChange={(e) => setFilters((prev: NewsFilters) => ({ 
+                ...prev, 
+                status: e.target.value as NewsStatus 
+              } as NewsFilters))}
               className="w-48 bg-gray-700 border border-gray-600 rounded px-3 py-2"
             >
               <option value="">Todos los estados</option>
@@ -177,10 +186,10 @@ export default function NewsList() {
 
             {/* Destacados */}
             <button
-                onClick={() => setFilters(prev => ({ 
-                ...prev, 
-                featured: prev.featured === undefined ? true : undefined 
-              }))}
+                onClick={() => setFilters({
+                  ...filters,
+                  featured: filters.featured === undefined ? true : undefined
+                })}
               className={`px-4 py-2 rounded-md flex items-center gap-2 ${
                 filters.featured 
                   ? 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30' 

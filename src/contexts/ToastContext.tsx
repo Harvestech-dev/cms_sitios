@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import IconRenderer from '@/components/common/IconRenderer';
 
@@ -14,30 +14,36 @@ interface Toast {
 }
 
 interface ToastContextType {
-  showToast: (message: string, type: ToastType, duration?: number) => void;
+  toasts: Toast[];
+  showToast: (message: string, type: Toast['type']) => void;
+  removeToast: (id: string) => void;
 }
 
-const ToastContext = createContext<ToastContextType | undefined>(undefined);
+const ToastContext = createContext<ToastContextType>({
+  toasts: [],
+  showToast: () => {},
+  removeToast: () => {},
+});
 
-export function ToastProvider({ children }: { children: ReactNode }) {
+export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const showToast = (message: string, type: ToastType = 'info', duration = 3000) => {
+  const showToast = useCallback((message: string, type: Toast['type'] = 'info') => {
     const id = Math.random().toString(36).substring(7);
-    const toast = { id, message, type, duration };
+    const toast = { id, message, type };
     
     setToasts(prev => [...prev, toast]);
     
-    if (duration > 0) {
+    if (toast.duration) {
       setTimeout(() => {
-        setToasts(prev => prev.filter(t => t.id !== id));
-      }, duration);
+        removeToast(id);
+      }, toast.duration);
     }
-  };
+  }, []);
 
-  const removeToast = (id: string) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
-  };
+  const removeToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  }, []);
 
   const getToastStyles = (type: ToastType) => {
     switch (type) {
@@ -69,7 +75,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={{ toasts, showToast, removeToast }}>
       {children}
       <div className="fixed bottom-0 right-0 p-6 z-50">
         <AnimatePresence>

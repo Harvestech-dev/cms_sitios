@@ -1,8 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import NewsList from './components/NewsList';
 import Header from '@/components/layout/Header';
+import NewsList from './components/NewsList';
 
 export default function NewsPage() {
   const router = useRouter();
@@ -23,10 +23,11 @@ export default function NewsPage() {
             variant: 'primary'
           }
         ]}
+        isExpanded={true}
       />
       
       <div className="container mx-auto px-4 py-8">
-        <NewsList onEdit={(id) => router.push(`/news/edit?id=${id}`)} />
+        <NewsList />
       </div>
     </>
   );

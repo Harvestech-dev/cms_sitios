@@ -5,10 +5,12 @@ import { useMedia } from '@/contexts/MediaContext';
 import FileUpload from '@/components/common/FileUpload';
 import IconRenderer from '@/components/common/IconRenderer';
 import { formatFileSize, formatDate } from '@/lib/utils';
-import { MediaFile } from '@/types/media';
+import type { MediaFile } from '@/types/media';
 import FileDetailsModal from '@/components/media/FileDetailsModal';
 import { useToast } from '@/contexts/ToastContext';
 import { Chip } from '@/components/common/Chip';
+import Image from 'next/image';
+import SafeImage from '@/components/common/SafeImage';
 
 type FilterType = 'all' | 'images' | 'videos' | 'documents';
 
@@ -31,14 +33,7 @@ export default function MediaPage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const filterFiles = (files: MediaFile[]) => {
-    let filtered = files;
-
-    // Log inicial
-    console.log('Filtrando archivos:', {
-      totalFiles: files.length,
-      selectedCategories,
-      filesWithCategories: files.filter(f => Array.isArray(f.categories) && f.categories.length > 0).length
-    });
+    let filtered = [...files];
 
     // Aplicar filtro por tipo
     switch (filter) {
@@ -66,48 +61,27 @@ export default function MediaPage() {
     // Aplicar filtro por categoría
     if (selectedCategories.length > 0) {
       filtered = filtered.filter(file => {
-        // Asegurarnos de que categories sea un array
         const fileCategories = Array.isArray(file.categories) 
           ? file.categories 
-          : typeof file.categories === 'object' && file.categories !== null
-            ? Object.values(file.categories)
-            : [];
-
-        // Log para debugging
-        console.log('Verificando categorías para:', {
-          fileName: file.name,
-          fileCategories,
-          selectedCategories,
-          rawCategories: file.categories
-        });
-
-        return fileCategories.some(category => selectedCategories.includes(category));
+          : [];
+        return fileCategories.some(category => selectedCategories.includes(category as string));
       });
     }
-
-    // Log final
-    console.log('Resultado del filtrado:', {
-      filteredCount: filtered.length,
-      appliedFilters: {
-        type: filter,
-        hasSearch: !!searchTerm,
-        categoryCount: selectedCategories.length
-      }
-    });
 
     return filtered;
   };
 
   const filteredFiles = filterFiles(files);
 
-  const handleUploadComplete = async () => {
+/*   const handleUploadComplete = async () => {
     try {
       await refreshMedia();
       showToast('Archivo subido correctamente', 'success');
-    } catch (error) {
+    } catch (uploadError) {
+      console.error('Error al subir:', uploadError);
       showToast('Error al subir el archivo', 'error');
     }
-  };
+  }; */
 
   const getFileIcon = (type: string) => {
     if (type.startsWith('image/')) return 'FaImage';
@@ -162,7 +136,7 @@ export default function MediaPage() {
       await updateFile(updatedFile.id, {
         name: updatedFile.name,
         alt: updatedFile.alt,
-        categories: updatedFile.categories
+        categories: updatedFile.categories || []
       });
       
       await refreshMedia();
@@ -196,8 +170,28 @@ export default function MediaPage() {
   };
 
   return (
-    <>
-      <div className="p-6 px-68">
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      {/* Sección de carga de archivos */}
+      <div className="mb-8">
+        <FileUpload 
+          onUploadComplete={async () => {
+            try {
+              await refreshMedia();
+              showToast('Archivo subido correctamente', 'success');
+            } catch (uploadError) {
+              console.error('Error al subir:', uploadError);
+              showToast('Error al subir el archivo', 'error');
+            }
+          }}
+          onError={(error) => {
+            console.error('Error:', error);
+            showToast('Error al subir el archivo', 'error');
+          }}
+        />
+      </div>
+
+      {/* Filtros y vista */}
+      <div className="bg-gray-800 rounded-lg overflow-hidden">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white mb-4">Biblioteca de medios</h1>
@@ -315,14 +309,6 @@ export default function MediaPage() {
           </div>
         </div>
 
-        {/* Upload Section */}
-        <div className="mb-8 p-6 bg-gray-800 rounded-lg">
-          <FileUpload
-            onUploadComplete={handleUploadComplete}
-            onError={(error) => console.error(error)}
-          />
-        </div>
-
         {/* Files Display */}
         {loading ? (
           <div className="text-center py-12">
@@ -344,10 +330,12 @@ export default function MediaPage() {
               >
                 <div className="aspect-square relative bg-gray-800">
                   {file.type.startsWith('image/') ? (
-                    <img
-                      src={getImagePreview(file)}
-                      alt={file.name}
-                      className="absolute inset-0 w-full h-full object-cover"
+                    <SafeImage
+                      src={file.url}
+                      alt={file.alt || file.name}
+                      width={200}
+                      height={200}
+                      className="w-full h-full object-cover"
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -425,6 +413,6 @@ export default function MediaPage() {
           onUpdate={handleUpdateFile}
         />
       )}
-    </>
+    </div>
   );
 } 

@@ -11,10 +11,6 @@ interface MenuItem {
   href: string;
 }
 
-interface SidebarProps {
-  items?: MenuItem[]; // Hacemos opcional items ya que definiremos el menú internamente
-}
-
 const MENU_ITEMS: MenuItem[] = [
   {
     label: 'Inicio',
@@ -43,7 +39,7 @@ const MENU_ITEMS: MenuItem[] = [
   }
 ];
 
-export default function Sidebar({}: SidebarProps) {
+export default function Sidebar() {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isPinned, setIsPinned] = useState(true);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -78,12 +74,15 @@ export default function Sidebar({}: SidebarProps) {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       className={`
-        fixed top-16 left-0 h-[calc(100%-4rem)] bg-gray-900 text-gray-300
-        transition-all duration-300 ease-in-out z-40
-        ${isExpanded ? 'w-64' : 'w-16'}
+        fixed  left-0 h-[100%] bg-gray-800 text-gray-300
+        transition-all duration-300 ease-in-out z-40 
+        ${isExpanded ? 'w-44' : 'w-16'}
         shadow-xl overflow-hidden
+        scrollbar-hide
       `}
     >
+     {isExpanded ? <div className="h-16 flex items-center justify-center">CMS WEB</div> : 
+    <div className="h-16 flex items-center justify-center"><IconRenderer icon="FaHome" className="w-5 h-5" /></div>}
       <nav className="pt-4 px-2 space-y-1 h-[calc(100%-4rem)] overflow-y-auto">
         {MENU_ITEMS.map((item) => (
           <Link
@@ -113,7 +112,7 @@ export default function Sidebar({}: SidebarProps) {
       </nav>
 
       {/* Botón de pin */}
-      <div className="absolute bottom-0 left-0 right-0 h-16 flex items-center justify-center px-4 border-t border-gray-800 bg-gray-900">
+      <div className="absolute bottom-0 left-0 right-0 h-16 flex items-center justify-center px-4 border-t border-gray-800 ">
         <button
           onClick={handleTogglePin}
           className={`

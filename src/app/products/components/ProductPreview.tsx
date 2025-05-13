@@ -1,10 +1,10 @@
 'use client';
 
 import { ProductFormData } from '@/types/products';
-import IconRenderer from '@/components/common/IconRenderer';
 import { formatPrice } from '@/lib/utils';
 import { marked } from 'marked';
 import rehypeRaw from 'rehype-raw';
+import Image from 'next/image';
 
 interface ProductPreviewProps {
   product: ProductFormData;
@@ -15,9 +15,11 @@ export default function ProductPreview({ product }: ProductPreviewProps) {
     <div className="bg-gray-800 rounded-lg overflow-hidden">
       {/* Galería de imágenes */}
       <div className="relative">
-        <img
+        <Image
           src={product.image_url || '/placeholder-product.jpg'}
           alt={product.title}
+          width={800}
+          height={600}
           className="w-full aspect-video object-cover"
         />
         {product.featured && (

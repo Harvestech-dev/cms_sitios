@@ -25,6 +25,16 @@ interface PerformanceMetrics {
   api?: APIMetrics;
 }
 
+
+
+interface ExtendedPerformance extends Performance {
+  memory?: {
+    usedJSHeapSize: number;
+    totalJSHeapSize: number;
+    jsHeapSizeLimit: number;
+  };
+}
+
 export default function DemoPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -34,7 +44,7 @@ export default function DemoPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const measureAPICall = async (endpoint: string): Promise<[any, APIMetrics]> => {
+  const measureAPICall = async <T,>(endpoint: string): Promise<[T, APIMetrics]> => {
     const startTime = performance.now();
     
     const response = await fetch(endpoint);
@@ -52,25 +62,25 @@ export default function DemoPage() {
 
   const measurePerformance = async (key: string, endpoint: string) => {
     const startTime = performance.now();
-    const startMemory = (performance as any).memory?.usedJSHeapSize;
+    const startMemory = ((performance as unknown) as ExtendedPerformance).memory?.usedJSHeapSize || 0;
 
     try {
-      const [data, apiMetrics] = await measureAPICall(endpoint);
+      const [data, apiMetrics] = await measureAPICall<unknown>(endpoint);
 
       switch (key) {
         case 'products':
-          setProducts(data);
+          setProducts(data as Product[]);
           break;
         case 'news':
-          setNews(data);
+          setNews(data as NewsItem[]);
           break;
         case 'components':
-          setComponents(data);
+          setComponents(data as ComponentData[]);
           break;
       }
 
       const endTime = performance.now();
-      const endMemory = (performance as any).memory?.usedJSHeapSize;
+      const endMemory = ((performance as unknown) as ExtendedPerformance).memory?.usedJSHeapSize || 0;
 
       setMetrics(prev => ({
         ...prev,
@@ -78,7 +88,7 @@ export default function DemoPage() {
           loadTime: endTime - startTime,
           renderTime: performance.now() - endTime,
           componentCount: document.querySelectorAll(`[data-component="${key}"]`).length,
-          memoryUsage: endMemory ? endMemory - startMemory : undefined,
+          memoryUsage: endMemory - startMemory,
           api: apiMetrics
         }
       }));
@@ -212,7 +222,7 @@ export default function DemoPage() {
               <section data-component="products">
                 <h2 className="text-xl font-semibold mb-6">Lista de Productos</h2>
                 <div className="bg-gray-800 rounded-lg mb-8">
-                  <ProductList />
+                  <ProductList onEdit={() => {}} />
                 </div>
                 {products[0] && (
                   <div className="bg-gray-800 rounded-lg p-6">
@@ -248,7 +258,10 @@ export default function DemoPage() {
                 {components.map(component => (
                   <div key={component.id} className="p-6 border-b border-gray-700 last:border-0">
                     <h3 className="text-lg font-semibold mb-4">{component.type}</h3>
-                    <PageRender type={component.type} />
+                    <PageRender 
+                      type={component.type} 
+                      page={component.page || 'demo'} 
+                    />
                   </div>
                 ))}
               </div>

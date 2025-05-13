@@ -1,32 +1,63 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useNews } from '@/contexts/NewsContext';
-import { NewsFormData } from '@/types/news';
-import Header from '@/components/layout/Header';
-import MDEditor from '@uiw/react-md-editor';
-import IconRender from '@/components/common/IconRender';
-import { formatDate } from '@/lib/utils';
+import NewsForm from '@/app/news/components/NewsForm';
+import type { NewsFormData, NewsItem } from '@/types/news';
 
-export default function NewsEditorPage() {
+interface NewsEditPageProps {
+  params: {
+    action: string;
+    id: string;
+  };
+}
+
+export default function NewsEditPage({ params }: NewsEditPageProps) {
   const router = useRouter();
-  const params = useParams();
-  const { createNews, updateNews, getNewsById } = useNews();
-  const [initialData, setInitialData] = useState<Partial<NewsFormData> | undefined>();
-  const isEditing = params.action === 'edit';
-  const id = params.id as string;
+  const { getNewsById, updateNews } = useNews();
+  const [news, setNews] = useState<NewsItem | null>(null);
 
   useEffect(() => {
-    if (isEditing && id) {
-      const newsData = getNewsById(id);
-      if (newsData) {
-        setInitialData(newsData);
+    const loadNews = async () => {
+      if (params.action === 'edit' && params.id) {
+        const newsItem = await getNewsById(params.id);
+        if (!newsItem) {
+          router.push('/news');
+          return;
+        }
+        setNews(newsItem);
       } else {
         router.push('/news');
       }
-    }
-  }, [isEditing, id]);
+    };
 
-  // ... resto del código igual ...
+    loadNews();
+  }, [params.action, params.id, getNewsById, router]);
+
+  const handleSave = async (data: NewsFormData) => {
+    if (!news) return;
+    
+    try {
+      await updateNews(news.id, data);
+      router.push('/news');
+    } catch (error) {
+      console.error('Error al actualizar noticia:', error);
+      throw error;
+    }
+  };
+
+  if (!news) {
+    return <div>Cargando...</div>;
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto py-6">
+      <NewsForm
+        initialData={news}
+        onSave={handleSave}
+        onCancel={() => router.push('/news')}
+      />
+    </div>
+  );
 } 

@@ -17,26 +17,19 @@ export default function NewsEditPage() {
   const id = params.id as string;
 
   useEffect(() => {
-    const newsData = getNewsById(id);
-    if (newsData) {
-      setInitialData({
-        title: newsData.title || '',
-        subtitle: newsData.subtitle || '',
-        summary: newsData.summary || '',
-        content: newsData.content || '',
-        author: newsData.author || '',
-        status: newsData.status || 'draft',
-        featured: newsData.featured || false,
-        tags: newsData.tags || [],
-        categories: newsData.categories || [],
-        img_src: newsData.img_src || '',
-        img_alt: newsData.img_alt || '',
-        slug: newsData.slug
-      });
-    } else {
-      router.push('/news');
-    }
-  }, [id]);
+    const loadNews = async () => {
+      try {
+        const news = await getNewsById(params.id);
+        if (!news) {
+          router.push('/news');
+        }
+      } catch (error) {
+        console.error('Error loading news:', error);
+        router.push('/news');
+      }
+    };
+    loadNews();
+  }, [params.id, getNewsById, router]);
 
   useEffect(() => {
     // Obtener el modo de vista de los parámetros de búsqueda

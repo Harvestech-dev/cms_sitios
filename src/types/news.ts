@@ -39,4 +39,19 @@ export interface NewsFilters {
   sortOrder?: 'asc' | 'desc';
 }
 
-export type NewsFormData = Omit<NewsItem, 'id' | 'created_at' | 'updated_at' | 'user_id'>; 
+export interface NewsFormData {
+  title: string;
+  subtitle?: string;
+  summary: string;
+  content: string;
+  author: string;
+  status: NewsStatus;
+  featured: boolean;
+  tags: string[];
+  categories: string[];
+  img_src?: string;
+  img_alt?: string;
+  slug?: string;
+  created_at?: string;
+  updated_at?: string;
+} 

@@ -22,12 +22,15 @@ export default function ProductList({ onEdit }: ProductListProps) {
   } = useProducts();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   // Búsqueda con debounce
   const debouncedSearch = useCallback(
     debounce((term: string) => {
-      setFilters({ ...filters, search: term, page: 1 });
+      setFilters(prev => ({
+        ...prev,
+        search: term,
+        page: 1
+      }));
     }, 500),
     [setFilters]
   );

@@ -6,7 +6,7 @@ import Header from '@/components/layout/Header';
 import RenderComponent from '@/components/common/RenderComponent';
 import DynamicForm from '@/components/common/DynamicForm';
 import { useToast } from '@/contexts/ToastContext';
-import { ComponentData } from '@/types/components';
+import type { ComponentContent } from '@/types/components';
 
 interface PageRenderProps {
   type: string;
@@ -22,10 +22,8 @@ export default function PageRender({ type, page }: PageRenderProps) {
 
   const handleSave = async (content: ComponentContent) => {
     try {
-      // Actualizamos UI inmediatamente
       updateComponent(type, { content, status: 'draft' });
 
-      // Guardamos en la base de datos
       await saveComponent(type, { 
         content,
         status: 'draft'
@@ -34,9 +32,8 @@ export default function PageRender({ type, page }: PageRenderProps) {
       setIsEditing(false);
       showToast('Cambios guardados correctamente', 'success');
     } catch (error) {
-      console.error('Error al guardar:', error);
+      console.error(error);
       showToast('Error al guardar los cambios', 'error');
-      // Revertir cambios locales si falla la actualización
       if (componentData) {
         updateComponent(type, componentData);
       }

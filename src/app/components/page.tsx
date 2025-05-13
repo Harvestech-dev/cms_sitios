@@ -3,10 +3,14 @@
 import { useState } from 'react';
 import Header from '@/components/layout/Header';
 import ComponentList from './components/ComponentList';
-import { Component } from '@/types/components';
+import { ComponentData } from '@/types/components';
 
 export default function ComponentsPage() {
-  const [selectedComponent, setSelectedComponent] = useState<Component | null>(null);
+  const [selectedComponent, setSelectedComponent] = useState<ComponentData | null>(null);
+
+  const handleComponentSelect = (component: ComponentData) => {
+    setSelectedComponent(component);
+  };
 
   return (
     <>
@@ -22,14 +26,14 @@ export default function ComponentsPage() {
           {
             label: 'Editar',
             icon: 'FaEdit',
-            onClick: () => {/* Manejar edición */},
+            onClick: () => handleComponentSelect(selectedComponent),
             variant: 'primary'
           }
         ] : []}
       />
       
       <div className="container mx-auto px-4 py-8">
-        <ComponentList />
+        <ComponentList onSelect={handleComponentSelect} />
       </div>
     </>
   );

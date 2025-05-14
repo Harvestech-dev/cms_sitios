@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { NewsFormData } from '@/types/news';
+import { NewsFormData, NewsStatus, NewsItem } from '@/types/news';
 import IconRender from '@/components/common/IconRender';
 import ImagePicker from '@/components/common/ImagePicker';
 import { ImageField } from '@/types/form';
@@ -11,15 +11,17 @@ import rehypeSanitize from 'rehype-sanitize';
 import '@uiw/react-markdown-preview/markdown.css';
 import '@uiw/react-md-editor/markdown-editor.css';
 import Image from 'next/image';
+import NewsPreview from '@/components/NewsPreview';
 
 interface NewsFormProps {
   onSave: (data: NewsFormData, status: NewsStatus) => Promise<void>;
   onCancel: () => void;
   initialData?: Partial<NewsFormData>;
   initialView?: 'edit' | 'preview';
+  fullNewsData?: NewsItem;
 }
 
-export default function NewsForm({ onSave, onCancel, initialData, initialView = 'edit' }: NewsFormProps) {
+export default function NewsForm({ onSave, onCancel, initialData, initialView = 'edit', fullNewsData }: NewsFormProps) {
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>(initialView);
   const [isSaving, setIsSaving] = useState(false);
   const [showImagePicker, setShowImagePicker] = useState(false);
@@ -32,7 +34,8 @@ export default function NewsForm({ onSave, onCancel, initialData, initialView = 
     formState: { errors, isDirty },
     setValue,
     watch,
-    reset
+    reset,
+    getValues
   } = useForm<NewsFormData>({
     defaultValues: {
       title: '',
@@ -132,6 +135,15 @@ export default function NewsForm({ onSave, onCancel, initialData, initialView = 
       setShowImagePicker(false);
     }
   };
+
+  const toggleView = () => {
+    console.log('Toggling view to:', viewMode === 'edit' ? 'preview' : 'edit');
+    console.log('Current form data for preview:', getValues());
+    setViewMode(current => current === 'edit' ? 'preview' : 'edit');
+  };
+
+  console.log('NewsForm rendering with initialData:', initialData);
+  console.log('Current form values:', getValues());
 
   return (
     <div className="flex flex-col h-full">
@@ -513,137 +525,145 @@ export default function NewsForm({ onSave, onCancel, initialData, initialView = 
             </div>
           </form>
         ) : (
-          <div className="p-6">
-            <div className="prose prose-invert prose-lg max-w-none">
-              {/* Encabezado */}
-              <h1 className="text-4xl font-bold mb-4">{watchTitle}</h1>
-              {watch('subtitle') && (
-                <p className="text-xl text-gray-300 mt-2 mb-8">{watch('subtitle')}</p>
-              )}
+          <>
+            {console.log('Rendering preview with data:', {
+              ...getValues(),
+              id: initialData?.id || '',
+              created_at: initialData?.created_at || new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })}
+            <div className="p-6">
+              <div className="prose prose-invert prose-lg max-w-none">
+                {/* Encabezado */}
+                <h1 className="text-4xl font-bold mb-4">{watchTitle}</h1>
+                {watch('subtitle') && (
+                  <p className="text-xl text-gray-300 mt-2 mb-8">{watch('subtitle')}</p>
+                )}
 
-              {/* Imagen destacada */}
-              {watch('img_src') && (
-                <div className="my-8">
-                  <Image
-                    src={watch('img_src')}
-                    alt={watch('img_alt') || watchTitle}
-                    width={300}
-                    height={200}
-                    className="w-full max-h-[400px] object-cover rounded-lg shadow-lg"
-                  />
+                {/* Imagen destacada */}
+                {watch('img_src') && (
+                  <div className="my-8">
+                    <Image
+                      src={watch('img_src')}
+                      alt={watch('img_alt') || watchTitle}
+                      width={300}
+                      height={200}
+                      className="w-full max-h-[400px] object-cover rounded-lg shadow-lg"
+                    />
+                  </div>
+                )}
+
+                {/* Resumen */}
+                <div className="text-lg text-gray-300 my-8 p-6 bg-gray-800/50 rounded-lg border border-gray-700">
+                  {watch('summary')}
                 </div>
-              )}
 
-              {/* Resumen */}
-              <div className="text-lg text-gray-300 my-8 p-6 bg-gray-800/50 rounded-lg border border-gray-700">
-                {watch('summary')}
-              </div>
-
-              {/* Contenido Markdown */}
-              <div className="wmde-markdown-var"> {/* Variables CSS personalizadas */}
-                <div className="wmde-markdown prose-headings:font-bold prose-headings:text-gray-100 prose-p:text-gray-300 prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline prose-strong:text-white prose-code:text-gray-300 prose-code:bg-gray-800 prose-code:rounded prose-code:px-1 prose-pre:bg-gray-800/50 prose-pre:border prose-pre:border-gray-700 prose-blockquote:border-l-4 prose-blockquote:border-gray-600 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-400">
-                  <MDEditor.Markdown 
-                    source={watchContent}
-                    rehypePlugins={[[rehypeSanitize]]}
-                  />
+                {/* Contenido Markdown */}
+                <div className="wmde-markdown-var"> {/* Variables CSS personalizadas */}
+                  <div className="wmde-markdown prose-headings:font-bold prose-headings:text-gray-100 prose-p:text-gray-300 prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline prose-strong:text-white prose-code:text-gray-300 prose-code:bg-gray-800 prose-code:rounded prose-code:px-1 prose-pre:bg-gray-800/50 prose-pre:border prose-pre:border-gray-700 prose-blockquote:border-l-4 prose-blockquote:border-gray-600 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-400">
+                    <MDEditor.Markdown 
+                      source={watchContent}
+                      rehypePlugins={[[rehypeSanitize]]}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {/* Autor y fechas */}
-              <div className="mt-8 pt-4 border-t border-gray-700 flex items-center justify-between">
-                <div className="flex items-center gap-1 text-gray-400">
-                  <IconRender icon="FaUser" className="w-4 h-4" />
-                  {watch('author')}
+                {/* Autor y fechas */}
+                <div className="mt-8 pt-4 border-t border-gray-700 flex items-center justify-between">
+                  <div className="flex items-center gap-1 text-gray-400">
+                    <IconRender icon="FaUser" className="w-4 h-4" />
+                    {watch('author')}
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-gray-400">
+                    {initialData?.created_at && (
+                      <div className="flex items-center gap-1">
+                        <IconRender icon="FaCalendar" className="w-4 h-4" />
+                        <span>Creado: {new Date(initialData.created_at).toLocaleDateString('es-ES', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}</span>
+                      </div>
+                    )}
+                    {initialData?.updated_at && initialData.updated_at !== initialData.created_at && (
+                      <div className="flex items-center gap-1">
+                        <IconRender icon="FaEdit" className="w-4 h-4" />
+                        <span>Actualizado: {new Date(initialData.updated_at).toLocaleDateString('es-ES', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-4 text-sm text-gray-400">
-                  {initialData?.created_at && (
-                    <div className="flex items-center gap-1">
-                      <IconRender icon="FaCalendar" className="w-4 h-4" />
-                      <span>Creado: {new Date(initialData.created_at).toLocaleDateString('es-ES', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}</span>
-                    </div>
-                  )}
-                  {initialData?.updated_at && initialData.updated_at !== initialData.created_at && (
-                    <div className="flex items-center gap-1">
-                      <IconRender icon="FaEdit" className="w-4 h-4" />
-                      <span>Actualizado: {new Date(initialData.updated_at).toLocaleDateString('es-ES', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Metadata */}
-              <div className="mt-8 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                <h2 className="text-lg font-medium text-gray-200 mb-4">Metadata</h2>
-                
-                <div className="flex flex-wrap gap-4">
-                  {/* Estado */}
-                  <span className={`px-2 py-1 rounded-full text-xs ${
-                    watchStatus === 'published' 
-                      ? 'bg-green-500/20 text-green-300'
-                      : watchStatus === 'draft'
-                      ? 'bg-gray-500/20 text-gray-300'
-                      : 'bg-red-500/20 text-red-300'
-                  }`}>
-                    {watchStatus === 'published' ? 'Publicado' : watchStatus === 'draft' ? 'Borrador' : 'Archivado'}
-                  </span>
-
-                  {/* Destacado */}
-                  {watch('featured') && (
-                    <span className="flex items-center gap-1 text-yellow-500">
-                      <IconRender icon="FaStar" className="w-4 h-4" />
-                      Destacado
+                {/* Metadata */}
+                <div className="mt-8 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                  <h2 className="text-lg font-medium text-gray-200 mb-4">Metadata</h2>
+                  
+                  <div className="flex flex-wrap gap-4">
+                    {/* Estado */}
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      watchStatus === 'published' 
+                        ? 'bg-green-500/20 text-green-300'
+                        : watchStatus === 'draft'
+                        ? 'bg-gray-500/20 text-gray-300'
+                        : 'bg-red-500/20 text-red-300'
+                    }`}>
+                      {watchStatus === 'published' ? 'Publicado' : watchStatus === 'draft' ? 'Borrador' : 'Archivado'}
                     </span>
-                  )}
 
-                  {/* Categorías */}
-                  {watch('categories')?.length > 0 && (
-                    <div className="flex items-center gap-2">
-                      <IconRender icon="FaFolder" className="w-4 h-4 text-gray-400" />
-                      <div className="flex gap-2">
-                        {watch('categories').map((category, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded-full text-xs"
-                          >
-                            {category}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                    {/* Destacado */}
+                    {watch('featured') && (
+                      <span className="flex items-center gap-1 text-yellow-500">
+                        <IconRender icon="FaStar" className="w-4 h-4" />
+                        Destacado
+                      </span>
+                    )}
 
-                  {/* Tags */}
-                  {watch('tags')?.length > 0 && (
-                    <div className="flex items-center gap-2">
-                      <IconRender icon="FaTags" className="w-4 h-4 text-gray-400" />
-                      <div className="flex gap-2">
-                        {watch('tags').map((tag, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-green-500/20 text-green-300 rounded-full text-xs"
-                          >
-                            {tag}
-                          </span>
-                        ))}
+                    {/* Categorías */}
+                    {watch('categories')?.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <IconRender icon="FaFolder" className="w-4 h-4 text-gray-400" />
+                        <div className="flex gap-2">
+                          {watch('categories').map((category, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded-full text-xs"
+                            >
+                              {category}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+
+                    {/* Tags */}
+                    {watch('tags')?.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <IconRender icon="FaTags" className="w-4 h-4 text-gray-400" />
+                        <div className="flex gap-2">
+                          {watch('tags').map((tag, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-1 bg-green-500/20 text-green-300 rounded-full text-xs"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
 

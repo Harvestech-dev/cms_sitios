@@ -194,7 +194,16 @@ export function NewsProvider({ children }: { children: React.ReactNode }) {
   };
 
   const getNewsById = useCallback((id: string) => {
-    return allNews.find(item => item.id === id);
+    console.log('getNewsById called with id:', id);
+    try {
+      // Buscar en el array local
+      const newsItem = allNews.find(item => item.id === id);
+      console.log('Found news item in local data:', newsItem);
+      return newsItem;
+    } catch (error) {
+      console.error('Error in getNewsById:', error);
+      throw error;
+    }
   }, [allNews]);
 
   const value = {

@@ -1,7 +1,7 @@
 'use client';
 
-import "./globals.css";
 import Sidebar from "@/components/layout/Sidebar";
+import "./globals.css";
 import { ComponentsProvider } from '@/contexts/ComponentsContext';
 import { MediaProvider } from '@/contexts/MediaContext';
 import { ToastProvider } from '@/contexts/ToastContext';
@@ -18,7 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className={inter.className}>
+      <body className={inter.className} suppressHydrationWarning={true}>
         <ToastProvider>
           <MediaProvider>
             <NewsProvider>
@@ -30,6 +30,7 @@ export default function RootLayout({
                       <main className="mx-[180px] pt-[72px]">
                         {children}
                       </main>
+                      <ToastContainer />
                     </div>
                   </IconSelectorProvider>
                 </ComponentsProvider>

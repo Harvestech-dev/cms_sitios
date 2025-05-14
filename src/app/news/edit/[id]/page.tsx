@@ -1,52 +1,87 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams, useSearchParams } from 'next/navigation';
+import { useState, useEffect, use } from 'react';
+import { useRouter } from 'next/navigation';
 import { useNews } from '@/contexts/NewsContext';
-import { NewsFormData } from '@/types/news';
-import Header from '@/components/layout/Header';
+import { useToast } from '@/contexts/ToastContext';
 import NewsForm from '../../components/NewsForm';
+import Header from '@/components/layout/Header';
+import { NewsFormData, NewsStatus, NewsItem } from '@/types/news';
+import Loading from '@/components/common/Loading';
 
-export default function NewsEditPage() {
+export default function EditNewsPage({ params }: { params: { id: string } }) {
+  const [loading, setLoading] = useState(true);
+  const [newsData, setNewsData] = useState<NewsItem | null>(null);
+  const { getNewsById, updateNews } = useNews();
+  const { showToast } = useToast();
   const router = useRouter();
-  const params = useParams();
-  const searchParams = useSearchParams();
-  const { updateNews, getNewsById } = useNews();
-  const [initialData, setInitialData] = useState<Partial<NewsFormData> | undefined>();
-  const [initialView, setInitialView] = useState<'edit' | 'preview'>('edit');
-  const id = params.id as string;
+  const unwrappedParams = use(params);
+  const { id } = unwrappedParams;
 
   useEffect(() => {
-    const loadNews = async () => {
+    const fetchNews = () => {
       try {
-        const news = await getNewsById(params.id);
+        setLoading(true);
+        console.log('Buscando noticia con ID:', id);
+        
+        // getNewsById ahora devuelve sincrónicamente el resultado
+        const news = getNewsById(id);
+        console.log('Datos encontrados:', news);
+        
         if (!news) {
+          console.error('No se encontró la noticia');
+          showToast('No se encontró la noticia', 'error');
           router.push('/news');
+          return;
         }
+        
+        // Guardar los datos encontrados en el estado
+        setNewsData(news);
+        console.log('Datos guardados en estado:', news);
       } catch (error) {
-        console.error('Error loading news:', error);
-        router.push('/news');
+        console.error('Error cargando noticia:', error);
+        showToast('Error al cargar los datos de la noticia', 'error');
+      } finally {
+        setLoading(false);
       }
     };
-    loadNews();
-  }, [params.id, getNewsById, router]);
 
-  useEffect(() => {
-    // Obtener el modo de vista de los parámetros de búsqueda
-    const view = searchParams.get('view');
-    if (view === 'preview') {
-      setInitialView('preview');
-    }
-  }, [searchParams]);
+    fetchNews();
+  }, [id, getNewsById, router, showToast]);
 
   const handleSave = async (data: NewsFormData, status: NewsStatus) => {
     try {
+      console.log('Guardando noticia:', data);
       await updateNews(id, { ...data, status });
+      showToast('Noticia actualizada correctamente', 'success');
       router.push('/news');
     } catch (error) {
-      console.error('Error al guardar:', error);
+      console.error('Error updating news:', error);
+      showToast('Error al actualizar la noticia', 'error');
     }
   };
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  console.log('Renderizando formulario con datos:', newsData);
+
+  // Preparar los datos iniciales para el formulario a partir de newsData
+  const formInitialData = newsData ? {
+    title: newsData.title || '',
+    subtitle: newsData.subtitle || '',
+    summary: newsData.summary || '',
+    content: newsData.content || '',
+    author: newsData.author || '',
+    status: newsData.status || 'draft',
+    featured: newsData.featured || false,
+    tags: newsData.tags || [],
+    categories: newsData.categories || [],
+    img_src: newsData.img_src || '',
+    img_alt: newsData.img_alt || '',
+    slug: newsData.slug
+  } : null;
 
   return (
     <>
@@ -55,19 +90,22 @@ export default function NewsEditPage() {
         breadcrumbs={[
           { label: 'Inicio', href: '/' },
           { label: 'Noticias', href: '/news' },
-          { label: 'Editar', href: '#' }
+          { label: 'Editar', href: `/news/edit/${id}` }
         ]}
       />
-      
       <div className="container mx-auto px-4 py-8">
-        <div className="bg-gray-800 rounded-lg shadow-lg">
+        {formInitialData ? (
           <NewsForm
+            initialData={formInitialData}
+            fullNewsData={newsData}
             onSave={handleSave}
             onCancel={() => router.push('/news')}
-            initialData={initialData}
-            initialView={initialView}
           />
-        </div>
+        ) : (
+          <div className="bg-red-900/20 text-red-300 p-4 rounded-lg">
+            No se pudieron cargar los datos de la noticia.
+          </div>
+        )}
       </div>
     </>
   );

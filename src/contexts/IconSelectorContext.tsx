@@ -7,27 +7,36 @@ interface IconSelectorContextType {
   showIconSelector: boolean;
   currentIcon?: string;
   onIconSelect?: (icon: string) => void;
-  openIconSelector: (currentIcon: string, onSelect: (icon: string) => void) => void;
+  openIconSelector: (currentIconOrConfig: string | { onSelect: (icon: string) => void }, onSelectCallback?: (icon: string) => void) => void;
   closeIconSelector: () => void;
 }
 
 const IconSelectorContext = createContext<IconSelectorContextType | undefined>(undefined);
 
-export function IconSelectorProvider({ children }: { children: ReactNode }) {
+export const IconSelectorProvider = ({ children }: { children: ReactNode }) => {
   const [showIconSelector, setShowIconSelector] = useState(false);
-  const [currentIcon, setCurrentIcon] = useState<string>();
-  const [onIconSelect, setOnIconSelect] = useState<((icon: string) => void) | undefined>();
+  const [currentIcon, setCurrentIcon] = useState('');
+  const [onSelectIcon, setOnSelectIcon] = useState<(icon: string) => void>(() => () => {});
 
-  const openIconSelector = (current: string, onSelect: (icon: string) => void) => {
-    setCurrentIcon(current);
-    setOnIconSelect(() => onSelect);
+  const openIconSelector = (
+    currentIconOrConfig: string | { onSelect: (icon: string) => void },
+    onSelectCallback?: (icon: string) => void
+  ) => {
+    if (typeof currentIconOrConfig === 'string') {
+      setCurrentIcon(currentIconOrConfig);
+      if (onSelectCallback) {
+        setOnSelectIcon(() => onSelectCallback);
+      }
+    } else if (typeof currentIconOrConfig === 'object' && currentIconOrConfig !== null) {
+      setCurrentIcon('');
+      setOnSelectIcon(() => currentIconOrConfig.onSelect);
+    }
+    
     setShowIconSelector(true);
   };
 
   const closeIconSelector = () => {
     setShowIconSelector(false);
-    setCurrentIcon(undefined);
-    setOnIconSelect(undefined);
   };
 
   return (
@@ -35,7 +44,7 @@ export function IconSelectorProvider({ children }: { children: ReactNode }) {
       value={{
         showIconSelector,
         currentIcon,
-        onIconSelect,
+        onIconSelect: onSelectIcon,
         openIconSelector,
         closeIconSelector
       }}
@@ -47,7 +56,7 @@ export function IconSelectorProvider({ children }: { children: ReactNode }) {
             isOpen={showIconSelector}
             onClose={closeIconSelector}
             onSelect={(icon) => {
-              onIconSelect?.(icon);
+              onSelectIcon(icon);
               closeIconSelector();
             }}
             currentIcon={currentIcon}
@@ -56,12 +65,14 @@ export function IconSelectorProvider({ children }: { children: ReactNode }) {
       </div>
     </IconSelectorContext.Provider>
   );
-}
+};
 
 export const useIconSelector = () => {
   const context = useContext(IconSelectorContext);
   if (!context) {
-    throw new Error('useIconSelector must be used within an IconSelectorProvider');
+    throw new Error('useIconSelector debe usarse dentro de un IconSelectorProvider');
   }
   return context;
 }; 
+
+

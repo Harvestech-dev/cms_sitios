@@ -23,35 +23,42 @@ export interface NewsItem {
   slug: string;
 }
 
-export type NewsStatus = 'draft' | 'published' | 'archived';
+export type NewsStatus = 'draft' | 'published';
 
 export interface NewsFilters {
-  status?: NewsStatus;
-  category?: string;
-  tag?: string;
-  featured?: boolean;
   search?: string;
-  page?: number;
-  limit?: number;
+  status?: string;
+  tags?: string[];
+  featured?: boolean;
   dateFrom?: string;
   dateTo?: string;
-  sortBy?: 'title' | 'created_at' | 'published_at' | 'author';
-  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
 }
 
 export interface NewsFormData {
   title: string;
-  subtitle?: string;
-  summary: string;
   content: string;
-  author: string;
+  summary: string;
   status: NewsStatus;
-  featured: boolean;
   tags: string[];
-  categories: string[];
+  featured: boolean;
   img_src?: string;
   img_alt?: string;
-  slug?: string;
-  created_at?: string;
+  publish_date?: string;
+}
+
+export interface News {
+  id: string;
+  title: string;
+  content: string;
+  summary: string;
+  status: NewsStatus;
+  tags: string[];
+  featured: boolean;
+  img_src?: string;
+  img_alt?: string;
+  publish_date?: string;
+  created_at: string;
   updated_at?: string;
 } 

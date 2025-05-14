@@ -113,8 +113,20 @@ export function ComponentsProvider({ children }: { children: ReactNode }) {
 
 export function useComponents() {
   const context = useContext(ComponentsContext);
-  if (context === undefined) {
-    throw new Error('useComponents debe usarse dentro de un ComponentsProvider');
+  if (!context) {
+    throw new Error('useComponents debe ser usado dentro de ComponentsProvider');
   }
-  return context;
+  
+  // Mejorar la función getComponentByType para que devuelva datos más consistentes
+  const getComponentByType = (type: string) => {
+    console.log("Buscando componente tipo:", type, "en", context.components);
+    const component = context.components.find(c => c.type === type);
+    console.log("Componente encontrado:", component ? "Sí" : "No", component);
+    return component;
+  };
+
+  return {
+    ...context,
+    getComponentByType
+  };
 } 

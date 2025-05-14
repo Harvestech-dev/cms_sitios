@@ -1,117 +1,80 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import IconRenderer from '@/components/common/IconRenderer';
 
-type ToastType = 'success' | 'error' | 'info' | 'warning';
+type ToastType = 'success' | 'error' | 'warning' | 'info';
 
 interface Toast {
-  id: string;
+  id: number;
   message: string;
   type: ToastType;
-  duration?: number;
 }
 
 interface ToastContextType {
-  toasts: Toast[];
-  showToast: (message: string, type: Toast['type']) => void;
-  removeToast: (id: string) => void;
+  showToast: (message: string, type: ToastType) => void;
 }
 
-const ToastContext = createContext<ToastContextType>({
-  toasts: [],
-  showToast: () => {},
-  removeToast: () => {},
-});
+const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
-export function ToastProvider({ children }: { children: React.ReactNode }) {
+let nextId = 1;
+
+export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const showToast = useCallback((message: string, type: Toast['type'] = 'info') => {
-    const id = Math.random().toString(36).substring(7);
-    const toast = { id, message, type };
-    
-    setToasts(prev => [...prev, toast]);
-    
-    if (toast.duration) {
-      setTimeout(() => {
-        removeToast(id);
-      }, toast.duration);
-    }
+  const showToast = useCallback((message: string, type: ToastType) => {
+    const id = nextId++;
+    setToasts(prev => [...prev, { id, message, type }]);
+
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      setToasts(prev => prev.filter(toast => toast.id !== id));
+    }, 5000);
   }, []);
 
-  const removeToast = useCallback((id: string) => {
+  const removeToast = (id: number) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
-  }, []);
+  };
 
-  const getToastStyles = (type: ToastType) => {
+  const getToastIcon = (type: ToastType) => {
     switch (type) {
-      case 'success':
-        return {
-          bg: 'bg-gray-800',
-          icon: 'FaCheckCircle',
-          iconColor: 'text-green-400'
-        };
-      case 'error':
-        return {
-          bg: 'bg-gray-800',
-          icon: 'FaExclamationCircle',
-          iconColor: 'text-red-400'
-        };
-      case 'warning':
-        return {
-          bg: 'bg-gray-800',
-          icon: 'FaExclamationTriangle',
-          iconColor: 'text-yellow-400'
-        };
-      default:
-        return {
-          bg: 'bg-gray-800',
-          icon: 'FaInfoCircle',
-          iconColor: 'text-blue-400'
-        };
+      case 'success': return 'FaCheckCircle';
+      case 'error': return 'FaExclamationCircle';
+      case 'warning': return 'FaExclamationTriangle';
+      case 'info': return 'FaInfoCircle';
+    }
+  };
+
+  const getToastColor = (type: ToastType) => {
+    switch (type) {
+      case 'success': return 'bg-green-500';
+      case 'error': return 'bg-red-500';
+      case 'warning': return 'bg-yellow-500';
+      case 'info': return 'bg-blue-500';
     }
   };
 
   return (
-    <ToastContext.Provider value={{ toasts, showToast, removeToast }}>
+    <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="fixed bottom-0 right-0 p-6 z-50">
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
         <AnimatePresence>
-          {toasts.map(toast => {
-            const styles = getToastStyles(toast.type);
-            
-            return (
-              <motion.div
-                key={toast.id}
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                className={`
-                  ${styles.bg} mb-2 p-4 rounded-lg shadow-lg
-                  border border-gray-700 min-w-[300px] max-w-[400px]
-                  flex items-center gap-3
-                `}
-                onClick={() => removeToast(toast.id)}
-              >
-                <IconRenderer 
-                  icon={styles.icon} 
-                  className={`w-5 h-5 ${styles.iconColor}`} 
-                />
-                <p className="text-gray-200 flex-1">{toast.message}</p>
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeToast(toast.id);
-                  }}
-                  className="text-gray-400 hover:text-gray-300"
-                >
-                  <IconRenderer icon="FaTimes" className="w-4 h-4" />
-                </button>
-              </motion.div>
-            );
-          })}
+          {toasts.map(toast => (
+            <motion.div
+              key={toast.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: 100 }}
+              className={`${getToastColor(toast.type)} text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 max-w-md`}
+            >
+              <IconRenderer icon={getToastIcon(toast.type)} className="w-5 h-5" />
+              <span className="flex-grow">{toast.message}</span>
+              <button onClick={() => removeToast(toast.id)} className="text-white">
+                <IconRenderer icon="FaTimes" className="w-4 h-4" />
+              </button>
+            </motion.div>
+          ))}
         </AnimatePresence>
       </div>
     </ToastContext.Provider>

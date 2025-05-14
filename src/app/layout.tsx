@@ -30,7 +30,6 @@ export default function RootLayout({
                       <main className="mx-[180px] pt-[72px]">
                         {children}
                       </main>
-                      <ToastContainer />
                     </div>
                   </IconSelectorProvider>
                 </ComponentsProvider>

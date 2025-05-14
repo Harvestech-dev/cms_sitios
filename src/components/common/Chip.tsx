@@ -1,27 +1,53 @@
-interface ChipProps {
+'use client';
+
+import React from 'react';
+import IconRenderer from './IconRenderer';
+
+export interface ChipProps {
   label: string;
-  selected?: boolean;
   onClick?: () => void;
+  onDelete?: () => void;
+  className?: string;
+  icon?: string;
+  active?: boolean;
 }
 
-export function Chip({ label, selected = false, onClick }: ChipProps) {
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevenir cualquier comportamiento por defecto
-    e.stopPropagation(); // Evitar propagación del evento
-    onClick?.();
-  };
-
+export function Chip({ 
+  label, 
+  onClick, 
+  onDelete, 
+  className = '', 
+  icon,
+  active = false
+}: ChipProps) {
   return (
-    <button
-      type="button" // Importante: especificar type="button" para evitar submit del form
-      onClick={handleClick}
-      className={`px-3 py-1 rounded-full text-sm transition-colors ${
-        selected
-          ? 'bg-blue-500 text-white hover:bg-blue-600'
+    <div
+      className={`
+        inline-flex items-center rounded-full px-3 py-1 text-sm
+        ${onClick ? 'cursor-pointer' : ''}
+        ${active 
+          ? 'bg-blue-600 text-white' 
           : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-      }`}
+        }
+        ${className}
+      `}
+      onClick={onClick}
     >
-      {label}
-    </button>
+      {icon && (
+        <IconRenderer icon={icon} className="w-3 h-3 mr-1" />
+      )}
+      <span>{label}</span>
+      {onDelete && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="ml-2 text-gray-400 hover:text-white"
+        >
+          <IconRenderer icon="FaTimes" className="w-3 h-3" />
+        </button>
+      )}
+    </div>
   );
 } 

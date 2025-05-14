@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import IconRenderer from '@/components/common/IconRenderer';
+import SafeImage from '../common/SafeImage';
 
 interface MenuItem {
   label: string;
@@ -18,8 +19,8 @@ const MENU_ITEMS: MenuItem[] = [
     href: '/'
   },
   {
-    label: 'Páginas',
-    icon: 'FaFile',
+    label: 'Componentes',
+    icon: 'FaPuzzlePiece',
     href: '/components'
   },
   {
@@ -81,8 +82,8 @@ export default function Sidebar() {
         scrollbar-hide
       `}
     >
-     {isExpanded ? <div className="h-16 flex items-center justify-center">CMS WEB</div> : 
-    <div className="h-16 flex items-center justify-center"><IconRenderer icon="FaHome" className="w-5 h-5" /></div>}
+     {isExpanded ? <div className="h-16 flex items-center justify-center"><SafeImage src="/favicon.png" alt="logo" width={32} height={32} /></div> : 
+    <div className="h-16 flex items-center justify-center"><SafeImage src="/favicon.png" alt="logo" width={32} height={32} /></div>}
       <nav className="pt-4 px-2 space-y-1 h-[calc(100%-4rem)] overflow-y-auto">
         {MENU_ITEMS.map((item) => (
           <Link
